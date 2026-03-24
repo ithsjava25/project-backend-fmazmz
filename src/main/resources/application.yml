@@ -4,12 +4,11 @@ server:
 spring:
   application:
     name: case-manager
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/case_manager_db
-    username: root
-    password: root
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
