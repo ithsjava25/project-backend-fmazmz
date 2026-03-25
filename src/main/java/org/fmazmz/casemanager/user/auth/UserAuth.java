@@ -1,11 +1,11 @@
-package org.fmazmz.casemanager.user;
+package org.fmazmz.casemanager.user.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.fmazmz.casemanager.user.dto.CompleteProfileRequest;
 import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.model.AuthProvider;
 import org.fmazmz.casemanager.user.model.User;
 import org.fmazmz.casemanager.user.repository.UserRepository;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -15,49 +15,38 @@ import java.util.Optional;
 @Service
 public class UserAuth {
     private final UserRepository userRepository;
+    private final GithubEmailResolver githubEmailResolver;
 
-    public UserAuth(UserRepository userRepository) {
+    public UserAuth(UserRepository userRepository, GithubEmailResolver githubEmailResolver) {
         this.userRepository = userRepository;
+        this.githubEmailResolver = githubEmailResolver;
     }
 
-    public User signup(OAuth2User principal, AuthProvider provider, SignupRequest request) {
-        String providerId = extractProviderId(principal, provider);
-        String avatarUrl = principal.getAttribute(provider.getAvatarAttribute());
+    public User signup(OAuth2AuthenticationToken authentication, SignupRequest request) {
+        if (!"github".equalsIgnoreCase(authentication.getAuthorizedClientRegistrationId())) {
+            throw new IllegalStateException("Only GitHub signup is supported.");
+        }
 
-        Optional<User> existing = userRepository.findByProviderAndProviderId(provider, providerId);
+        OAuth2User principal = authentication.getPrincipal();
+        String providerId = extractProviderId(principal, AuthProvider.GITHUB);
+        String avatarUrl = principal.getAttribute(AuthProvider.GITHUB.getAvatarAttribute());
+        String email = githubEmailResolver.resolveGithubEmail(authentication);
+
+        Optional<User> existing = userRepository.findByProviderAndProviderId(AuthProvider.GITHUB, providerId);
         if (existing.isPresent()) {
             throw new IllegalStateException("User already registered");
         }
 
         User user = new User();
-        user.setProvider(provider);
+        user.setProvider(AuthProvider.GITHUB);
         user.setProviderId(providerId);
         user.setUserName(request.userName());
         user.setAvatarUrl(avatarUrl);
-        user.setProfileCompleted(false);
+        user.setEmail(email);
 
         return userRepository.save(user);
     }
 
-    public User completeProfile(OAuth2User principal, AuthProvider provider, CompleteProfileRequest request) {
-        String providerId = extractProviderId(principal, provider);
-
-        User user = userRepository.findByProviderAndProviderId(provider, providerId)
-                .orElseThrow(() -> new IllegalStateException("User not found. Please sign up first."));
-
-        if (user.isProfileCompleted()) {
-            throw new IllegalStateException("Profile is already completed");
-        }
-
-        if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalStateException("Email is already in use");
-        }
-
-        user.setEmail(request.email());
-        user.setProfileCompleted(true);
-
-        return userRepository.save(user);
-    }
 
     public Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId) {
         return userRepository.findByProviderAndProviderId(provider, providerId);

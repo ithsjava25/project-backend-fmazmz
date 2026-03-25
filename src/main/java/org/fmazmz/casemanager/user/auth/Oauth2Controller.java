@@ -1,8 +1,7 @@
-package org.fmazmz.casemanager.user;
+package org.fmazmz.casemanager.user.auth;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.fmazmz.casemanager.user.dto.CompleteProfileRequest;
 import org.fmazmz.casemanager.user.dto.OAuthInfoResponse;
 import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;
@@ -57,28 +56,10 @@ public class Oauth2Controller {
             OAuth2AuthenticationToken authentication,
             @RequestBody @Valid SignupRequest request) {
 
-        var principal = authentication.getPrincipal();
-        AuthProvider provider = AuthProvider.fromRegistrationId(
-                authentication.getAuthorizedClientRegistrationId());
-
-        User user = userAuth.signup(principal, provider, request);
+        User user = userAuth.signup(authentication, request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(UserResponse.from(user)));
-    }
-
-    @PostMapping("/complete-profile")
-    public ResponseEntity<ApiResponse<UserResponse>> completeProfile(
-            OAuth2AuthenticationToken authentication,
-            @RequestBody @Valid CompleteProfileRequest request) {
-
-        var principal = authentication.getPrincipal();
-        AuthProvider provider = AuthProvider.fromRegistrationId(
-                authentication.getAuthorizedClientRegistrationId());
-
-        User user = userAuth.completeProfile(principal, provider, request);
-
-        return ResponseEntity.ok(new ApiResponse<>(UserResponse.from(user)));
     }
 }

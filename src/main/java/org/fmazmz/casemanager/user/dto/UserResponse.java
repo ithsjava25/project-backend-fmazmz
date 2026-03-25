@@ -6,7 +6,6 @@ import java.util.UUID;
 
 public record UserResponse(
         boolean registered,
-        boolean profileCompleted,
         UUID id,
         String provider,
         String userName,
@@ -16,7 +15,6 @@ public record UserResponse(
     public static UserResponse from(User user) {
         return new UserResponse(
                 true,
-                user.isProfileCompleted(),
                 user.getId(),
                 user.getProvider().name(),
                 user.getUserName(),
