@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket.service;
+package org.fmazmz.casemanager.ticket.audit;
 
 import org.fmazmz.casemanager.ticket.model.AuditLog;
 import org.fmazmz.casemanager.ticket.model.Ticket;
@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class AuditLogService {
+public class AuditLogWriter {
     private final AuditLogRepository auditLogRepository;
 
-    public AuditLogService(AuditLogRepository auditLogRepository) {
+    public AuditLogWriter(AuditLogRepository auditLogRepository) {
         this.auditLogRepository = auditLogRepository;
     }
 
