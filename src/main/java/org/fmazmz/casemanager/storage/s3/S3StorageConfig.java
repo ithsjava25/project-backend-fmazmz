@@ -1,6 +1,7 @@
 package org.fmazmz.casemanager.storage.s3;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,6 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
 @EnableConfigurationProperties(S3StorageProperties.class)
+@ConditionalOnProperty(prefix = "app.storage", name = "provider", havingValue = "s3")
 public class S3StorageConfig {
 
     @Bean
