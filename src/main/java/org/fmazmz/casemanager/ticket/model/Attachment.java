@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket;
+package org.fmazmz.casemanager.ticket.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,11 +11,11 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "audit_logs")
+@Table(name = "attachments")
 @NoArgsConstructor
 @Getter
 @Setter
-public class AuditLog {
+public class Attachment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -25,21 +25,22 @@ public class AuditLog {
     private Ticket ticket;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "uploaded_by", nullable = false)
+    private User uploadedBy;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TicketAction action;
+    private String fileName;
 
-    @Column(name = "field_name")
-    private String field;
+    @Column(nullable = false)
+    private String contentType;
 
-    @Column(columnDefinition = "TEXT")
-    private String oldValue;
+    @Column(nullable = false)
+    private Long fileSize;
 
-    @Column(columnDefinition = "TEXT")
-    private String newValue;
+    @Column(nullable = false, unique = true)
+    private String storageKey;
+
+    private String url;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)

@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket;
+package org.fmazmz.casemanager.ticket.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -6,16 +6,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.fmazmz.casemanager.user.model.User;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "attachments")
+@Table(name = "ticket_comments")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Attachment {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -25,24 +26,17 @@ public class Attachment {
     private Ticket ticket;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "uploaded_by", nullable = false)
-    private User uploadedBy;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private String fileName;
-
-    @Column(nullable = false)
-    private String contentType;
-
-    @Column(nullable = false)
-    private Long fileSize;
-
-    @Column(nullable = false, unique = true)
-    private String storageKey;
-
-    private String url;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String message;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private Instant updatedAt;
 }

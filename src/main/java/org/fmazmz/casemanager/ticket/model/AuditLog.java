@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket;
+package org.fmazmz.casemanager.ticket.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -6,17 +6,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.fmazmz.casemanager.user.model.User;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "ticket_comments")
+@Table(name = "audit_logs")
 @NoArgsConstructor
 @Getter
 @Setter
-public class Comment {
+public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -29,14 +28,20 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String message;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TicketAction action;
+
+    @Column(name = "field_name")
+    private String field;
+
+    @Column(columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(columnDefinition = "TEXT")
+    private String newValue;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private Instant updatedAt;
 }
