@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.user;
+package org.fmazmz.casemanager.user.repository;
 
 import org.fmazmz.casemanager.user.model.AuthProvider;
 import org.fmazmz.casemanager.user.model.User;

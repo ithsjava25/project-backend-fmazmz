@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.user.model;
+package org.fmazmz.casemanager.user.model.rbac;
 
 import jakarta.persistence.Embeddable;
 
@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 @Embeddable
-public class RolePermissionId implements Serializable {
+public class UserRoleId implements Serializable {
+    private UUID userId;
     private UUID roleId;
-    private UUID permissionId;
 }
