@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket;
+package org.fmazmz.casemanager.ticket.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
