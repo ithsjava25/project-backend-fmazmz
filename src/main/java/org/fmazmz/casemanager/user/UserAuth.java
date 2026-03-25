@@ -5,6 +5,7 @@ import org.fmazmz.casemanager.user.dto.CompleteProfileRequest;
 import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.model.AuthProvider;
 import org.fmazmz.casemanager.user.model.User;
+import org.fmazmz.casemanager.user.repository.UserRepository;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.user.model;
+package org.fmazmz.casemanager.user.model.rbac;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

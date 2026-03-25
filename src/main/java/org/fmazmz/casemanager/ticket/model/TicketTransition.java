@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.fmazmz.casemanager.user.model.Permission;
+import org.fmazmz.casemanager.user.model.rbac.Permission;
 
 import java.util.UUID;
 
