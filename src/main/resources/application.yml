@@ -12,3 +12,11 @@ spring:
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
+
+app:
+  storage:
+    provider: s3
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+      region: ${AWS_REGION}
+      public-base-url: ${AWS_S3_PUBLIC_BASE_URL}
