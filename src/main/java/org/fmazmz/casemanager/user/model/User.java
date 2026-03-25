@@ -39,8 +39,6 @@ public class User {
 
     private String avatarUrl;
 
-    private boolean profileCompleted;
-
     @CreationTimestamp
     private Instant createdAt;
 
