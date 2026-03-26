@@ -43,8 +43,8 @@ public class TicketOrchestrator {
         User actor = userRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        if (!permissionEvaluator.hasPermission(actor, "ticket.create")) {
-            throw new SecurityException("User is not authorized to perform " + TicketAction.CREATE);
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.CREATE)) {
+            throw new SecurityException("User is not authorized to perform action: " + TicketAction.CREATE);
         }
 
         TypeHandler typeHandler = typeHandlerFactory.resolve(request.type());

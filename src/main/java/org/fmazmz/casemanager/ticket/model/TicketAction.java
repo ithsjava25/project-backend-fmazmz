@@ -9,5 +9,9 @@ public enum TicketAction {
     CHANGE_STATUS,
     CHANGE_PRIORITY,
     COMMENT,
-    UPLOAD_ATTACHMENT
+    UPLOAD_ATTACHMENT;
+
+    public String permissionName() {
+        return "ticket." + name().toLowerCase();
+    }
 }
