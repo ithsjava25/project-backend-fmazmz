@@ -1,0 +1,23 @@
+package org.fmazmz.casemanager.ticket.dto;
+
+import org.fmazmz.casemanager.ticket.model.Priority;
+import org.fmazmz.casemanager.ticket.model.TicketStatus;
+import org.fmazmz.casemanager.ticket.model.TicketType;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record TicketResponse(
+        UUID id,
+        String number,
+        TicketType type,
+        String title,
+        String description,
+        UUID requesterId,
+        UUID assigneeId,
+        TicketStatus status,
+        Priority priority,
+        Instant createdAt,
+        Instant updatedAt
+) {
+}
