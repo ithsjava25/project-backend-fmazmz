@@ -1,6 +1,7 @@
 package org.fmazmz.casemanager.ticket.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,10 +27,16 @@ public class Ticket {
     @Column(unique = true, nullable = false)
     private String number;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private TicketType type;
+
+    @Column(nullable = false)
+    @Size(min = 5, max = 100)
     private String title;
 
     @Column(columnDefinition = "TEXT")
+    @Size(min = 5, max = 5000)
     private String description;
 
     @ManyToOne(optional = false)

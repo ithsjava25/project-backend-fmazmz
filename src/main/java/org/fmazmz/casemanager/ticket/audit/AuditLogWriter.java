@@ -28,6 +28,7 @@ public class AuditLogWriter {
         event.setTicket(ticket);
         event.setUser(actor);
         event.setField(field);
+        event.setAction(action);
         event.setOldValue(oldValue);
         event.setNewValue(newValue);
 
