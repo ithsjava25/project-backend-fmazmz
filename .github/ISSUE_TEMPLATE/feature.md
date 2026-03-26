@@ -4,6 +4,7 @@ about: Document functionality
 title: "[FEATURE][domain]: outcome description"
 labels: ''
 assignees: ''
+type: Feature
 
 ---
 
@@ -48,6 +49,6 @@ What capability we are adding and why it matters.
 - [ ] 
 
 ## Test Coverage
-- [ ] Unit
-- [ ] Integration
-- [ ] Error-path
+- [ ] Unit:
+- [ ] Integration:
+- [ ] Error-path:
