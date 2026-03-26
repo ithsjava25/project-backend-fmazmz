@@ -4,6 +4,7 @@ about: Create a report to help us improve
 title: "[BUG][Domain]: Short bug title"
 labels: ''
 assignees: ''
+type: Bug
 
 ---
 
