@@ -7,7 +7,7 @@ import org.fmazmz.casemanager.ticket.model.dto.CreateTicketRequest;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RequestTicketHandler implements TicketTypeHandler {
+public class RequestHandler implements TypeHandler {
     @Override
     public TicketType supports() {
         return TicketType.REQUEST;

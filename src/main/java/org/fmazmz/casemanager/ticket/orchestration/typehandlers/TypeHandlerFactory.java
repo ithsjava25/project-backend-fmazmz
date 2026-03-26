@@ -10,18 +10,18 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class TicketTypeHandlerFactory {
-    private final Map<TicketType, TicketTypeHandler> handlers;
+public class TypeHandlerFactory {
+    private final Map<TicketType, TypeHandler> handlers;
 
-    public TicketTypeHandlerFactory(List<TicketTypeHandler> handlerList) {
+    public TypeHandlerFactory(List<TypeHandler> handlerList) {
         this.handlers = handlerList.stream()
-            .collect(Collectors.toMap(TicketTypeHandler::supports, h -> h));
+            .collect(Collectors.toMap(TypeHandler::supports, h -> h));
     }
 
-    public TicketTypeHandler resolve(TicketType type) {
+    public TypeHandler resolve(TicketType type) {
         log.info("Resolving handler for type {}", type);
 
-        TicketTypeHandler handler = handlers.get(type);
+        TypeHandler handler = handlers.get(type);
         if (handler == null) {
             log.warn("Could not resolve a handler for TicketType: {}", type);
             throw new IllegalStateException("No handler configured for type: " + type);

@@ -4,7 +4,7 @@ import org.fmazmz.casemanager.ticket.model.Ticket;
 import org.fmazmz.casemanager.ticket.model.TicketType;
 import org.fmazmz.casemanager.ticket.model.dto.CreateTicketRequest;
 
-public interface TicketTypeHandler {
+public interface TypeHandler {
     TicketType supports();
 
     void applyDefaults(CreateTicketRequest request, Ticket ticket);
