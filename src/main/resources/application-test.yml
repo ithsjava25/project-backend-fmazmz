@@ -9,10 +9,12 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    defer-datasource-initialization: true
 
   sql:
     init:
-      mode: never
+      mode: always
+      platform: h2
 
 app:
   storage:
