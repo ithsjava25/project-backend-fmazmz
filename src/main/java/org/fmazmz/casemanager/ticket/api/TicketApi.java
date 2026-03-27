@@ -1,34 +1,53 @@
 package org.fmazmz.casemanager.ticket.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
-import org.fmazmz.casemanager.ticket.orchestration.TicketOrchestrator;
-import org.fmazmz.casemanager.utils.ApiResponse;
-import org.springframework.http.HttpStatus;
+import org.fmazmz.casemanager.utils.ApiErrorResponse;
+import org.fmazmz.casemanager.utils.ApiResponseWrapper;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("api/v1/tickets")
-public class TicketApi {
-    private final TicketOrchestrator ticketOrchestrator;
+@Tag(name = "Ticket API", description = "Perform CRUD operations on Tickets")
+@RequestMapping(
+        path = "api/v1/tickets",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+)
+public interface TicketApi {
 
-    public TicketApi(TicketOrchestrator ticketOrchestrator) {
-        this.ticketOrchestrator = ticketOrchestrator;
-    }
-
+    @Operation(summary = "Create a new Ticket")
+    @ApiResponse(
+            responseCode = "201",
+            description = "Created",
+            useReturnTypeSchema = true
+    )
+    @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+)
+    @ApiResponse(responseCode = "403", description = "Forbidden",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    @ApiResponse(responseCode = "500", description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     @PostMapping
-    public ResponseEntity<ApiResponse<TicketResponse>> createTicket(
-            @RequestBody @Valid CreateTicketRequest request) {
-
-        TicketResponse response = ticketOrchestrator.createTicket(request, request.requesterId());
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(response));
-    }
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> createTicket(
+            @Valid
+            @RequestBody
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Payload to create a new Ticket"
+            )
+            CreateTicketRequest request
+            );
 }
