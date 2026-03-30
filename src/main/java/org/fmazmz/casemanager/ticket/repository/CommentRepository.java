@@ -13,5 +13,5 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     List<Comment> findAllByUserId(UUID userId);
 
     List<Comment> findAllByTicketId(UUID ticketId);
-    List<Comment> findByTicketIdAndVisiblity(UUID ticketId, CommentVisibility visibility);
+    List<Comment> findByTicketIdAndVisibility(UUID ticketId, CommentVisibility visibility);
 }
