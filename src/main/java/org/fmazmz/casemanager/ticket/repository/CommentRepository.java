@@ -1,6 +1,7 @@
 package org.fmazmz.casemanager.ticket.repository;
 
 import org.fmazmz.casemanager.ticket.model.Comment;
+import org.fmazmz.casemanager.ticket.model.CommentVisibility;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,5 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     List<Comment> findAllByUserId(UUID userId);
 
     List<Comment> findAllByTicketId(UUID ticketId);
+    List<Comment> findByTicketIdAndVisibility(UUID ticketId, CommentVisibility visibility);
 }
