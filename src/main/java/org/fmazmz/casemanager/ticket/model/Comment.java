@@ -21,6 +21,9 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Enumerated(EnumType.STRING)
+    private CommentVisibility visibility;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
