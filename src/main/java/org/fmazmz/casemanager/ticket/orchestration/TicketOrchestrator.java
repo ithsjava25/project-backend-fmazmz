@@ -2,7 +2,10 @@ package org.fmazmz.casemanager.ticket.orchestration;
 
 import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.ticket.audit.AuditLogWriter;
+import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
+import org.fmazmz.casemanager.ticket.model.Comment;
+import org.fmazmz.casemanager.ticket.model.CommentVisibility;
 import org.fmazmz.casemanager.ticket.model.Ticket;
 import org.fmazmz.casemanager.ticket.model.TicketAction;
 import org.fmazmz.casemanager.ticket.model.TicketStatus;
@@ -10,8 +13,10 @@ import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.orchestration.typehandlers.TypeHandler;
 import org.fmazmz.casemanager.ticket.orchestration.typehandlers.TypeHandlerFactory;
+import org.fmazmz.casemanager.ticket.repository.CommentRepository;
 import org.fmazmz.casemanager.ticket.repository.TicketRepository;
 import org.fmazmz.casemanager.ticket.workflow.PermissionEvaluator;
+import org.fmazmz.casemanager.ticket.workflow.TicketWorkflowValidator;
 import org.fmazmz.casemanager.user.model.User;
 import org.fmazmz.casemanager.user.repository.UserRepository;
 
@@ -29,16 +34,21 @@ public class TicketOrchestrator {
     private final PermissionEvaluator permissionEvaluator;
     private final AuditLogWriter auditLogWriter;
     private final TypeHandlerFactory typeHandlerFactory;
+    private final TicketWorkflowValidator workflowValidator;
+    private final CommentRepository commentRepository;
 
     public TicketOrchestrator(TicketRepository ticketRepository, UserRepository userRepository,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
-                              AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory) {
+                              AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory,
+                              TicketWorkflowValidator workflowValidator, CommentRepository commentRepository) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.numberGenerator = numberGenerator;
         this.permissionEvaluator = permissionEvaluator;
         this.auditLogWriter = auditLogWriter;
         this.typeHandlerFactory = typeHandlerFactory;
+        this.workflowValidator = workflowValidator;
+        this.commentRepository = commentRepository;
     }
 
     @Transactional
@@ -75,6 +85,48 @@ public class TicketOrchestrator {
                 TicketStatus.OPEN.name()
         );
         
+        return TicketMapper.toDto(saved);
+    }
+
+    @Transactional
+    public TicketResponse changeStatus(UUID ticketId, ChangeTicketStatusRequest request, UUID actorId) {
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        TicketStatus fromStatus = ticket.getStatus();
+        TicketStatus toStatus = request.status();
+
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)) {
+            throw new AccessDeniedException(
+                    "User is not authorized to perform transition " + fromStatus + " -> " + toStatus
+            );
+        }
+
+        workflowValidator.validateRequiredTransitionFields(toStatus, request);
+
+        if (toStatus == TicketStatus.AWAITING_USER_INFO) {
+            Comment comment = new Comment();
+            comment.setTicket(ticket);
+            comment.setUser(actor);
+            comment.setVisibility(CommentVisibility.PUBLIC);
+            comment.setMessage(request.publicComment().trim());
+            commentRepository.save(comment);
+        }
+
+        String oldStatus = fromStatus.name();
+        ticket.setStatus(toStatus);
+
+        if (toStatus == TicketStatus.RESOLVED) {
+            ticket.setResolutionNotes(request.resolutionNotes().trim());
+        }
+
+        Ticket saved = ticketRepository.saveAndFlush(ticket);
+
+        auditLogWriter.logChange(saved, actor, TicketAction.CHANGE_STATUS, "status", oldStatus, toStatus.name());
+
         return TicketMapper.toDto(saved);
     }
 }

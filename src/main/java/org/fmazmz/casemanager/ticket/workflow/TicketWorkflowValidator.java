@@ -1,5 +1,6 @@
 package org.fmazmz.casemanager.ticket.workflow;
 
+import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.model.TicketStatus;
 import org.fmazmz.casemanager.ticket.model.TicketTransition;
 import org.fmazmz.casemanager.ticket.repository.TransitionRepository;
@@ -25,6 +26,18 @@ public class TicketWorkflowValidator {
     public String requiredPermissionName(TicketStatus from, TicketStatus to) {
         TicketTransition transition = requireTransition(from, to);
         return transition.getRequiredPermission().getName();
+    }
+
+    public void validateRequiredTransitionFields(TicketStatus toStatus, ChangeTicketStatusRequest request) {
+        if (toStatus == TicketStatus.AWAITING_USER_INFO
+                && (request.publicComment() == null || request.publicComment().isBlank())) {
+            throw new IllegalArgumentException("Transition to AWAITING_USER_INFO requires a public comment");
+        }
+
+        if (toStatus == TicketStatus.RESOLVED
+                && (request.resolutionNotes() == null || request.resolutionNotes().isBlank())) {
+            throw new IllegalArgumentException("Transition to RESOLVED requires resolution notes");
+        }
     }
 }
 

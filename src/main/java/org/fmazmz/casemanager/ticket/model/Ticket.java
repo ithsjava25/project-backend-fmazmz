@@ -39,6 +39,10 @@ public class Ticket {
     @Size(min = 5, max = 5000)
     private String description;
 
+    @Column(name = "resolution_notes", columnDefinition = "TEXT")
+    @Size(max = 2000)
+    private String resolutionNotes;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;

@@ -13,6 +13,7 @@ public record TicketResponse(
         TicketType type,
         String title,
         String description,
+        String resolutionNotes,
         UUID requesterId,
         UUID assigneeId,
         TicketStatus status,

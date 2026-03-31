@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.fmazmz.casemanager.ticket.model.TicketType;
 
-import java.util.UUID;
-
 public record CreateTicketRequest(
         @NotBlank
         @Size(min = 5, max = 100, message = "Title must be between 5 and 100 characters")
@@ -17,9 +15,6 @@ public record CreateTicketRequest(
         String description,
 
         @NotNull
-        TicketType type,
-
-        @NotNull
-        UUID requesterId
+        TicketType type
 ) {
 }
