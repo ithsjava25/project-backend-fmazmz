@@ -107,6 +107,19 @@ public class TicketOrchestrator {
 
         workflowValidator.validateRequiredTransitionFields(toStatus, request);
 
+        if (toStatus == TicketStatus.WORK_IN_PROGRESS) {
+            User assignee = userRepository.findById(request.assignee())
+                    .orElseThrow(() -> new IllegalArgumentException("Assignee user not found"));
+            ticket.setAssignee(assignee);
+
+            Comment internalComment = new Comment();
+            internalComment.setTicket(ticket);
+            internalComment.setUser(actor);
+            internalComment.setVisibility(CommentVisibility.INTERNAL);
+            internalComment.setMessage(request.internalComment().trim());
+            commentRepository.save(internalComment);
+        }
+
         if (toStatus == TicketStatus.AWAITING_USER_INFO) {
             Comment comment = new Comment();
             comment.setTicket(ticket);

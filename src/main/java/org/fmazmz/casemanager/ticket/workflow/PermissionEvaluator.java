@@ -21,11 +21,17 @@ public class PermissionEvaluator {
         if (action == null) {
             return false;
         }
+        return hasPermission(actingUser, action.permissionName());
+    }
 
-        long count = permissionRepository.countByUserIdAndPermissionName(
-                actingUser.getId(),
-                action.permissionName()
-        );
+    public boolean hasPermission(User actingUser, String permissionName) {
+        if (actingUser == null || actingUser.getId() == null) {
+            return false;
+        }
+        if (permissionName == null || permissionName.isBlank()) {
+            return false;
+        }
+        long count = permissionRepository.countByUserIdAndPermissionName(actingUser.getId(), permissionName);
         return count > 0;
     }
 }
