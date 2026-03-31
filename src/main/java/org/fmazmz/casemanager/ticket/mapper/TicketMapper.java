@@ -14,6 +14,7 @@ public class TicketMapper {
                 ticket.getType(),
                 ticket.getTitle(),
                 ticket.getDescription(),
+                ticket.getResolutionNotes(),
                 ticket.getRequester().getId(),
                 ticket.getAssignee() != null ? ticket.getAssignee().getId() : null,
                 ticket.getStatus(),

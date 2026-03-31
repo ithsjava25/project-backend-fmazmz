@@ -28,4 +28,24 @@ public class GlobalExceptionHandler {
                         ex.getMessage(),
                         HttpStatus.FORBIDDEN.value()));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiErrorResponse(
+                        HttpStatus.BAD_REQUEST.name(),
+                        ex.getMessage(),
+                        HttpStatus.BAD_REQUEST.value()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(new ApiErrorResponse(
+                        HttpStatus.CONFLICT.name(),
+                        ex.getMessage(),
+                        HttpStatus.CONFLICT.value()));
+    }
 }
