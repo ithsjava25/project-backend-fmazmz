@@ -99,9 +99,11 @@ public class TicketOrchestrator {
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus = request.status();
 
-        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)) {
+        String requiredPermissionName = workflowValidator.requiredPermissionName(fromStatus, toStatus);
+        if (!permissionEvaluator.hasPermission(actor, requiredPermissionName)) {
             throw new AccessDeniedException(
-                    "User is not authorized to perform transition " + fromStatus + " -> " + toStatus
+                    "User is not authorized for transition " + fromStatus + " -> " + toStatus
+                            + " (required permission: " + requiredPermissionName + ")"
             );
         }
 
@@ -138,7 +140,8 @@ public class TicketOrchestrator {
 
         Ticket saved = ticketRepository.saveAndFlush(ticket);
 
-        auditLogWriter.logChange(saved, actor, TicketAction.CHANGE_STATUS, "status", oldStatus, toStatus.name());
+        TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
+        auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
 
         return TicketMapper.toDto(saved);
     }
