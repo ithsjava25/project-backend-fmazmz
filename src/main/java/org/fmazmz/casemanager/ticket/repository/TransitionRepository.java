@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface TransitionRepository extends JpaRepository<TicketTransition, UUID> {
     Optional<TicketTransition> findByFromStatusAndToStatus(TicketStatus fromStatus, TicketStatus toStatus);
+    boolean existsByFromStatusAndToStatus(TicketStatus fromStatus, TicketStatus toStatus);
 }

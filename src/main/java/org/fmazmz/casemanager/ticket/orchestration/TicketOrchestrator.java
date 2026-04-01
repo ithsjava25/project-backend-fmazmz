@@ -99,13 +99,44 @@ public class TicketOrchestrator {
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus = request.status();
 
-        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)) {
-            throw new AccessDeniedException(
-                    "User is not authorized to perform transition " + fromStatus + " -> " + toStatus
+        if (fromStatus == TicketStatus.CLOSED) {
+            throw new IllegalArgumentException(
+                    "Closed tickets are final; create a new ticket if work needs to continue."
             );
         }
 
+        String requiredPermissionName = workflowValidator.requiredPermissionName(fromStatus, toStatus);
+        if (!permissionEvaluator.hasPermission(actor, requiredPermissionName)) {
+            throw new AccessDeniedException(
+                    "User is not authorized for transition " + fromStatus + " -> " + toStatus
+                            + " (required permission: " + requiredPermissionName + ")"
+            );
+        }
+
+        if (TicketAction.REOPEN.permissionName().equals(requiredPermissionName)) {
+            boolean staff = permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)
+                    || permissionEvaluator.hasPermission(actor, TicketAction.ASSIGN);
+            if (!staff && !ticket.getRequester().getId().equals(actor.getId())) {
+                throw new AccessDeniedException(
+                        "Only the requester or service staff can reopen this ticket"
+                );
+            }
+        }
+
         workflowValidator.validateRequiredTransitionFields(toStatus, request);
+
+        if (toStatus == TicketStatus.WORK_IN_PROGRESS) {
+            User assignee = userRepository.findById(request.assignee())
+                    .orElseThrow(() -> new IllegalArgumentException("Assignee user not found"));
+            ticket.setAssignee(assignee);
+
+            Comment internalComment = new Comment();
+            internalComment.setTicket(ticket);
+            internalComment.setUser(actor);
+            internalComment.setVisibility(CommentVisibility.INTERNAL);
+            internalComment.setMessage(request.internalComment().trim());
+            commentRepository.save(internalComment);
+        }
 
         if (toStatus == TicketStatus.AWAITING_USER_INFO) {
             Comment comment = new Comment();
@@ -125,7 +156,8 @@ public class TicketOrchestrator {
 
         Ticket saved = ticketRepository.saveAndFlush(ticket);
 
-        auditLogWriter.logChange(saved, actor, TicketAction.CHANGE_STATUS, "status", oldStatus, toStatus.name());
+        TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
+        auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
 
         return TicketMapper.toDto(saved);
     }

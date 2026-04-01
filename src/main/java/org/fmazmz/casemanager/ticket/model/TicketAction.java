@@ -9,9 +9,17 @@ public enum TicketAction {
     CHANGE_STATUS,
     CHANGE_PRIORITY,
     COMMENT,
-    UPLOAD_ATTACHMENT;
+    UPLOAD_ATTACHMENT,
+    REOPEN;
 
     public String permissionName() {
         return "ticket." + name().toLowerCase();
+    }
+
+    public static TicketAction fromPermissionName(String permissionName) {
+        if (permissionName == null || !permissionName.startsWith("ticket.")) {
+            throw new IllegalArgumentException("Invalid ticket permission name: " + permissionName);
+        }
+        return TicketAction.valueOf(permissionName.substring("ticket.".length()).toUpperCase());
     }
 }

@@ -29,6 +29,13 @@ public class TicketWorkflowValidator {
     }
 
     public void validateRequiredTransitionFields(TicketStatus toStatus, ChangeTicketStatusRequest request) {
+        if (toStatus == TicketStatus.WORK_IN_PROGRESS && request.assignee() == null) {
+            throw new IllegalArgumentException("Transition to WORK_IN_PROGRESS requires an assignee");
+        }
+        if (toStatus == TicketStatus.WORK_IN_PROGRESS
+                && (request.internalComment() == null || request.internalComment().isBlank())) {
+            throw new IllegalArgumentException("Transition to WORK_IN_PROGRESS requires an internal comment");
+        }
         if (toStatus == TicketStatus.AWAITING_USER_INFO
                 && (request.publicComment() == null || request.publicComment().isBlank())) {
             throw new IllegalArgumentException("Transition to AWAITING_USER_INFO requires a public comment");
