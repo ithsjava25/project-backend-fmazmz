@@ -8,7 +8,8 @@ public enum TicketAction {
     ASSIGN,
     CHANGE_STATUS,
     CHANGE_PRIORITY,
-    COMMENT,
+    COMMENT_PUBLIC,
+    COMMENT_INTERNAL,
     UPLOAD_ATTACHMENT,
     REOPEN;
 

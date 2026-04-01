@@ -1,6 +1,8 @@
 package org.fmazmz.casemanager.ticket.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,6 +26,7 @@ public class Comment {
     @Enumerated(EnumType.STRING)
     private CommentVisibility visibility;
 
+    @JsonIgnore
     @ManyToOne(optional = false)
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
@@ -33,6 +36,7 @@ public class Comment {
     private User user;
 
     @Column(nullable = false, columnDefinition = "TEXT")
+    @Size(min = 1, max = 5000)
     private String message;
 
     @CreationTimestamp

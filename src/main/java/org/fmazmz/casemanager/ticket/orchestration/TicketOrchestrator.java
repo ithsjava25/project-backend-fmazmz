@@ -3,6 +3,8 @@ package org.fmazmz.casemanager.ticket.orchestration;
 import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.ticket.audit.AuditLogWriter;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
+import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.mapper.CommentMapper;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
 import org.fmazmz.casemanager.ticket.model.Comment;
 import org.fmazmz.casemanager.ticket.model.CommentVisibility;
@@ -85,7 +87,7 @@ public class TicketOrchestrator {
                 TicketStatus.OPEN.name()
         );
         
-        return TicketMapper.toDto(saved);
+        return TicketMapper.toDto(saved, includeInternalComments(actor));
     }
 
     @Transactional
@@ -159,6 +161,34 @@ public class TicketOrchestrator {
         TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
         auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
 
-        return TicketMapper.toDto(saved);
+        return TicketMapper.toDto(saved, includeInternalComments(actor));
+    }
+
+    @Transactional
+    public TicketResponse addComment(UUID ticketId, TicketCommentRequest request, UUID actorId) {
+        User actor = userRepository.findById(actorId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        TicketAction requiredAction = switch (request.visibility()) {
+            case PUBLIC -> TicketAction.COMMENT_PUBLIC;
+            case INTERNAL -> TicketAction.COMMENT_INTERNAL;
+        };
+
+        if (!permissionEvaluator.hasPermission(actor, requiredAction)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + requiredAction);
+        }
+
+        Comment comment = CommentMapper.toComment(request, actor, ticket);
+        Comment saved = commentRepository.saveAndFlush(comment);
+        ticket.getComments().add(saved);
+
+        return TicketMapper.toDto(ticket, includeInternalComments(actor));
+    }
+
+    private boolean includeInternalComments(User actor) {
+        return permissionEvaluator.hasPermission(actor, TicketAction.COMMENT_INTERNAL);
     }
 }

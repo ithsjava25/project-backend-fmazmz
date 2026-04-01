@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
+import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.utils.ApiErrorResponse;
 import org.fmazmz.casemanager.utils.ApiResponseWrapper;
@@ -72,10 +73,31 @@ public interface TicketApi {
             content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     @ApiResponse(responseCode = "500", description = "Internal Server Error",
             content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
-    @PatchMapping("/{ticketId}/status")
+    @PatchMapping("{ticketId}/status")
     ResponseEntity<ApiResponseWrapper<TicketResponse>> changeTicketStatus(
             OAuth2AuthenticationToken authentication,
             @PathVariable UUID ticketId,
             @Valid @RequestBody ChangeTicketStatusRequest request
+    );
+
+    @Operation(summary = "Add a comment (public or internal work note; visibility is enforced server-side)")
+    @ApiResponse(responseCode = "202", description = "Accepted", useReturnTypeSchema = true)
+    @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
+    )
+    @ApiResponse(responseCode = "403", description = "Forbidden",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Not Found",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    @ApiResponse(responseCode = "500", description = "Internal Server Error",
+            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    @PostMapping("{ticketId}/comment")
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> comment(
+            OAuth2AuthenticationToken authentication,
+            @PathVariable UUID ticketId,
+            @Valid @RequestBody TicketCommentRequest request
     );
 }
