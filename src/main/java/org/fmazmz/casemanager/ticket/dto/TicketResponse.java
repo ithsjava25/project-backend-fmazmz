@@ -1,10 +1,12 @@
 package org.fmazmz.casemanager.ticket.dto;
 
+import org.fmazmz.casemanager.ticket.model.Comment;
 import org.fmazmz.casemanager.ticket.model.Priority;
 import org.fmazmz.casemanager.ticket.model.TicketStatus;
 import org.fmazmz.casemanager.ticket.model.TicketType;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record TicketResponse(
@@ -13,6 +15,7 @@ public record TicketResponse(
         TicketType type,
         String title,
         String description,
+        List<Comment> comments,
         String resolutionNotes,
         UUID requesterId,
         UUID assigneeId,

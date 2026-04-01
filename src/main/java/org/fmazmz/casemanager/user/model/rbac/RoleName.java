@@ -15,7 +15,8 @@ public enum RoleName {
             TicketAction.ASSIGN,
             TicketAction.CHANGE_STATUS,
             TicketAction.CHANGE_PRIORITY,
-            TicketAction.COMMENT,
+            TicketAction.COMMENT_PUBLIC,
+            TicketAction.COMMENT_INTERNAL,
             TicketAction.UPLOAD_ATTACHMENT,
             TicketAction.REOPEN
     )),
@@ -23,7 +24,7 @@ public enum RoleName {
             TicketAction.CREATE,
             TicketAction.READ,
             TicketAction.UPDATE,
-            TicketAction.COMMENT,
+            TicketAction.COMMENT_PUBLIC,
             TicketAction.UPLOAD_ATTACHMENT,
             TicketAction.REOPEN
     )),

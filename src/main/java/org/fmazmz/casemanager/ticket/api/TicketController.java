@@ -3,6 +3,7 @@ package org.fmazmz.casemanager.ticket.api;
 import jakarta.validation.Valid;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
+import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.orchestration.TicketOrchestrator;
 import org.fmazmz.casemanager.user.auth.AuthenticatedUserResolver;
@@ -35,8 +36,8 @@ public class TicketController implements TicketApi{
     public ResponseEntity<ApiResponseWrapper<TicketResponse>> createTicket(
             OAuth2AuthenticationToken authentication,
             @RequestBody @Valid CreateTicketRequest request) {
-        User actor = authenticatedUserResolver.requireUser(authentication);
 
+        User actor = authenticatedUserResolver.requireUser(authentication);
         TicketResponse response = ticketOrchestrator.createTicket(request, actor.getId());
 
         return ResponseEntity
@@ -44,14 +45,29 @@ public class TicketController implements TicketApi{
                 .body(new ApiResponseWrapper<>(response));
     }
 
-    @PatchMapping("/{ticketId}/status")
+    @PatchMapping("{ticketId}/status")
     @Override
     public ResponseEntity<ApiResponseWrapper<TicketResponse>> changeTicketStatus(
             OAuth2AuthenticationToken authentication,
             @PathVariable UUID ticketId,
             @RequestBody @Valid ChangeTicketStatusRequest request) {
+
         User actor = authenticatedUserResolver.requireUser(authentication);
         TicketResponse response = ticketOrchestrator.changeStatus(ticketId, request, actor.getId());
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PostMapping("{ticketId}/comment")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> comment(
+            OAuth2AuthenticationToken authentication,
+            @PathVariable UUID ticketId,
+            @RequestBody @Valid TicketCommentRequest request) {
+
+        User actor = authenticatedUserResolver.requireUser(authentication);
+        TicketResponse response = ticketOrchestrator.addComment(ticketId, request, actor.getId());
+
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }
 }

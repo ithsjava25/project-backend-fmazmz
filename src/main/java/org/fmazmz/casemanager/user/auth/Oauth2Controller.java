@@ -25,7 +25,7 @@ public class Oauth2Controller implements Oauth2Api {
         this.userAuth = userAuth;
     }
 
-    @GetMapping("/me")
+    @GetMapping("me")
     @Override
     public ResponseEntity<ApiResponseWrapper<?>> me(OAuth2AuthenticationToken authentication) {
         var principal = authentication.getPrincipal();
@@ -51,7 +51,7 @@ public class Oauth2Controller implements Oauth2Api {
         return ResponseEntity.ok(new ApiResponseWrapper<>(UserResponse.from(user.get())));
     }
 
-    @PostMapping("/signup")
+    @PostMapping("signup")
     @Override
     public ResponseEntity<ApiResponseWrapper<UserResponse>> signup(
             OAuth2AuthenticationToken authentication,

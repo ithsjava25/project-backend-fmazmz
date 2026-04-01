@@ -55,7 +55,7 @@ public interface Oauth2Api {
     @ApiResponse(responseCode = "500", description = "Internal Server Error",
             content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
     )
-    @GetMapping("/me")
+    @GetMapping("me")
     ResponseEntity<ApiResponseWrapper<?>> me(OAuth2AuthenticationToken authentication);
 
     @Operation(summary = "Complete signup for authenticated OAuth2 user")
@@ -73,7 +73,7 @@ public interface Oauth2Api {
     @ApiResponse(responseCode = "500", description = "Internal Server Error",
             content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
     )
-    @PostMapping("/signup")
+    @PostMapping("signup")
     ResponseEntity<ApiResponseWrapper<UserResponse>> signup(
             OAuth2AuthenticationToken authentication,
             @Valid
