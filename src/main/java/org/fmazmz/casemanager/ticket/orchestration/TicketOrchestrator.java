@@ -99,12 +99,28 @@ public class TicketOrchestrator {
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus = request.status();
 
+        if (fromStatus == TicketStatus.CLOSED) {
+            throw new IllegalArgumentException(
+                    "Closed tickets are final; create a new ticket if work needs to continue."
+            );
+        }
+
         String requiredPermissionName = workflowValidator.requiredPermissionName(fromStatus, toStatus);
         if (!permissionEvaluator.hasPermission(actor, requiredPermissionName)) {
             throw new AccessDeniedException(
                     "User is not authorized for transition " + fromStatus + " -> " + toStatus
                             + " (required permission: " + requiredPermissionName + ")"
             );
+        }
+
+        if (TicketAction.REOPEN.permissionName().equals(requiredPermissionName)) {
+            boolean staff = permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)
+                    || permissionEvaluator.hasPermission(actor, TicketAction.ASSIGN);
+            if (!staff && !ticket.getRequester().getId().equals(actor.getId())) {
+                throw new AccessDeniedException(
+                        "Only the requester or service staff can reopen this ticket"
+                );
+            }
         }
 
         workflowValidator.validateRequiredTransitionFields(toStatus, request);

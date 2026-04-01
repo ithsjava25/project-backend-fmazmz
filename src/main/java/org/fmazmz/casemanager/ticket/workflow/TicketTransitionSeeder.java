@@ -60,6 +60,8 @@ public class TicketTransitionSeeder implements CommandLineRunner {
         transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_USER_INFO, TicketAction.CHANGE_STATUS));
         transitions.add(new TransitionSeed(TicketStatus.AWAITING_USER_INFO, TicketStatus.WORK_IN_PROGRESS, TicketAction.CHANGE_STATUS));
         transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.RESOLVED, TicketAction.RESOLVE));
+        transitions.add(new TransitionSeed(TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.RESOLVED, TicketStatus.WORK_IN_PROGRESS, TicketAction.REOPEN));
         return transitions;
     }
 

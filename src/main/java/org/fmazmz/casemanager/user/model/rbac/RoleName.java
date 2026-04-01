@@ -16,14 +16,16 @@ public enum RoleName {
             TicketAction.CHANGE_STATUS,
             TicketAction.CHANGE_PRIORITY,
             TicketAction.COMMENT,
-            TicketAction.UPLOAD_ATTACHMENT
+            TicketAction.UPLOAD_ATTACHMENT,
+            TicketAction.REOPEN
     )),
     REPORTER(EnumSet.of(
             TicketAction.CREATE,
             TicketAction.READ,
             TicketAction.UPDATE,
             TicketAction.COMMENT,
-            TicketAction.UPLOAD_ATTACHMENT
+            TicketAction.UPLOAD_ATTACHMENT,
+            TicketAction.REOPEN
     )),
     VIEWER(EnumSet.of(
             TicketAction.READ
