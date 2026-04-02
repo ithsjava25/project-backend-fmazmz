@@ -1,7 +1,8 @@
-package org.fmazmz.casemanager.user.auth;
+package org.fmazmz.casemanager.user.auth.api;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.fmazmz.casemanager.user.auth.UserAuth;
 import org.fmazmz.casemanager.user.dto.OAuthInfoResponse;
 import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;

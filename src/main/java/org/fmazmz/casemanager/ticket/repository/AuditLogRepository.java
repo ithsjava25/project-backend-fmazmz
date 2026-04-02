@@ -2,6 +2,8 @@ package org.fmazmz.casemanager.ticket.repository;
 
 import org.fmazmz.casemanager.ticket.model.AuditLog;
 import org.fmazmz.casemanager.ticket.model.TicketAction;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +12,8 @@ import java.util.UUID;
 
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
-    List<AuditLog> findAllByTicketId(UUID ticketId);
+    Page<AuditLog> findAllByTicketId(UUID ticketId, Pageable pageable);
+
     List<AuditLog> findAllByUserId(UUID userId);
     List<AuditLog> findAllByAction(TicketAction action);
 }
