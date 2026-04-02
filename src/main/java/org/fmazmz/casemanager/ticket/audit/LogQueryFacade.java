@@ -9,9 +9,11 @@ import org.fmazmz.casemanager.ticket.repository.AuditLogRepository;
 import org.fmazmz.casemanager.ticket.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.user.model.User;
 import org.fmazmz.casemanager.user.repository.UserRepository;
+import org.fmazmz.casemanager.utils.PagedResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,32 +28,29 @@ public class LogQueryFacade {
         this.userRepository = userRepository;
     }
 
-    public List<LogJournal> getAllTicketLogJournals(UUID actorId) {
+    public PagedResult<LogJournal> getAllTicketLogJournals(UUID actorId, Pageable pageable) {
         User actor = userRepository.findById(actorId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (!permissionEvaluator.hasPermission(actor, TicketAction.LOG_READ)) {
-            throw new AccessDeniedException("User is not authorized to perform action: "+ TicketAction.LOG_READ);
-
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.LOG_READ);
         }
-        List<AuditLog> logs = repository.findAll();
 
-        return logs.stream()
-                .map(AuditLogMapper::toDto)
-                .toList();
+        Page<AuditLog> page = repository.findAll(pageable);
+        Page<LogJournal> mapped = page.map(AuditLogMapper::toDto);
+        return PagedResult.from(mapped);
     }
 
-    public List<LogJournal> getAllLogJournalsByTicketId(UUID actorId, UUID ticketId) {
+    public PagedResult<LogJournal> getAllLogJournalsByTicketId(UUID actorId, UUID ticketId, Pageable pageable) {
         User actor = userRepository.findById(actorId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (!permissionEvaluator.hasPermission(actor, TicketAction.LOG_READ)) {
-            throw new AccessDeniedException("User is not authorized to perform action: "+ TicketAction.LOG_READ);
-
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.LOG_READ);
         }
-        return repository.findAllByTicketId(ticketId)
-                .stream()
-                .map(AuditLogMapper::toDto)
-                .toList();
+
+        Page<AuditLog> page = repository.findAllByTicketId(ticketId, pageable);
+        Page<LogJournal> mapped = page.map(AuditLogMapper::toDto);
+        return PagedResult.from(mapped);
     }
 }

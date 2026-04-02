@@ -5,6 +5,15 @@ spring:
   application:
     name: case-manager
 
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+        default-page-size: 20
+        page-parameter: page
+        size-parameter: size
+        sort-parameter: sort
+
   security:
     oauth2:
       client:
