@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.user.auth;
+package org.fmazmz.casemanager.user.auth.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,7 +10,8 @@ import jakarta.validation.Valid;
 import org.fmazmz.casemanager.user.dto.OAuthInfoResponse;
 import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;
-import org.fmazmz.casemanager.utils.ApiErrorResponse;
+import org.fmazmz.casemanager.openapi.SignupErrorResponses;
+import org.fmazmz.casemanager.openapi.UnauthorizedServerErrorResponses;
 import org.fmazmz.casemanager.utils.ApiResponseWrapper;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -49,12 +50,7 @@ public interface Oauth2Api {
                     }
             )
     )
-    @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-    )
-    @ApiResponse(responseCode = "500", description = "Internal Server Error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-    )
+    @UnauthorizedServerErrorResponses
     @GetMapping("me")
     ResponseEntity<ApiResponseWrapper<?>> me(OAuth2AuthenticationToken authentication);
 
@@ -64,15 +60,7 @@ public interface Oauth2Api {
             description = "Created",
             useReturnTypeSchema = true
     )
-    @ApiResponse(responseCode = "400", description = "Bad Request",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-    )
-    @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-    )
-    @ApiResponse(responseCode = "500", description = "Internal Server Error",
-            content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))
-    )
+    @SignupErrorResponses
     @PostMapping("signup")
     ResponseEntity<ApiResponseWrapper<UserResponse>> signup(
             OAuth2AuthenticationToken authentication,
