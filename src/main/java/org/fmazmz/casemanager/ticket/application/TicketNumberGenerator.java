@@ -34,7 +34,7 @@ public class TicketNumberGenerator {
         return "ticket_seq_" + type.name().toLowerCase();
     }
 
-    String formatNumber(String prefix, Long sequence) {
+    public String formatNumber(String prefix, Long sequence) {
         return String.format("%s%0" + NUMBER_PADDING + "d", prefix, sequence);
     }
 }
