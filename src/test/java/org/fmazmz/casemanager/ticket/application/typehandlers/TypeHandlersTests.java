@@ -1,4 +1,4 @@
-package org.fmazmz.casemanager.ticket.typehandlers;
+package org.fmazmz.casemanager.ticket.application.typehandlers;
 
 import org.fmazmz.casemanager.ticket.domain.Priority;
 import org.fmazmz.casemanager.ticket.domain.Ticket;

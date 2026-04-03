@@ -1,6 +1,5 @@
-package org.fmazmz.casemanager.ticket.orchestration;
+package org.fmazmz.casemanager.ticket.application;
 
-import org.fmazmz.casemanager.ticket.application.TicketNumberGenerator;
 import org.fmazmz.casemanager.ticket.domain.TicketType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
