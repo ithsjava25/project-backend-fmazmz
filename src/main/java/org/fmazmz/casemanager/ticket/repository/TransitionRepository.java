@@ -1,7 +1,7 @@
 package org.fmazmz.casemanager.ticket.repository;
 
-import org.fmazmz.casemanager.ticket.model.TicketStatus;
-import org.fmazmz.casemanager.ticket.model.TicketTransition;
+import org.fmazmz.casemanager.ticket.domain.TicketStatus;
+import org.fmazmz.casemanager.ticket.domain.TicketTransition;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

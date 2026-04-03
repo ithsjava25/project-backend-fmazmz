@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.user.repository;
 
-import org.fmazmz.casemanager.user.model.rbac.Role;
+import org.fmazmz.casemanager.user.domain.rbac.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
