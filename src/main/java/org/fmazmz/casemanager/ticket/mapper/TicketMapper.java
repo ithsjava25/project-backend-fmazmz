@@ -1,8 +1,8 @@
 package org.fmazmz.casemanager.ticket.mapper;
 
-import org.fmazmz.casemanager.ticket.model.Comment;
-import org.fmazmz.casemanager.ticket.model.CommentVisibility;
-import org.fmazmz.casemanager.ticket.model.Ticket;
+import org.fmazmz.casemanager.ticket.domain.Comment;
+import org.fmazmz.casemanager.ticket.domain.CommentVisibility;
+import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.springframework.stereotype.Component;
 

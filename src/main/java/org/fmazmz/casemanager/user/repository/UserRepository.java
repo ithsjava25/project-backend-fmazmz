@@ -1,7 +1,7 @@
 package org.fmazmz.casemanager.user.repository;
 
-import org.fmazmz.casemanager.user.model.AuthProvider;
-import org.fmazmz.casemanager.user.model.User;
+import org.fmazmz.casemanager.user.domain.AuthProvider;
+import org.fmazmz.casemanager.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

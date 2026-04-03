@@ -1,8 +1,8 @@
 package org.fmazmz.casemanager.storage.s3;
 
-import org.fmazmz.casemanager.storage.StorageService;
-import org.fmazmz.casemanager.storage.StoreObjectRequest;
-import org.fmazmz.casemanager.storage.StorageObject;
+import org.fmazmz.casemanager.storage.domain.StorageService;
+import org.fmazmz.casemanager.storage.domain.StoreObjectRequest;
+import org.fmazmz.casemanager.storage.domain.StorageObject;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;

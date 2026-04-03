@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.user.repository;
 
-import org.fmazmz.casemanager.user.model.rbac.Permission;
+import org.fmazmz.casemanager.user.domain.rbac.Permission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

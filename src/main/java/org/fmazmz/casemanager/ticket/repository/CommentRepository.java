@@ -1,7 +1,7 @@
 package org.fmazmz.casemanager.ticket.repository;
 
-import org.fmazmz.casemanager.ticket.model.Comment;
-import org.fmazmz.casemanager.ticket.model.CommentVisibility;
+import org.fmazmz.casemanager.ticket.domain.Comment;
+import org.fmazmz.casemanager.ticket.domain.CommentVisibility;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

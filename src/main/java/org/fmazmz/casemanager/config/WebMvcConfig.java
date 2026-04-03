@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.config;
 
-import org.fmazmz.casemanager.user.auth.CurrentUserArgumentResolver;
+import org.fmazmz.casemanager.user.http.CurrentUserArgumentResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

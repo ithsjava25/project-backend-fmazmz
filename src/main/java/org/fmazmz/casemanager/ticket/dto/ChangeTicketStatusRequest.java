@@ -2,7 +2,7 @@ package org.fmazmz.casemanager.ticket.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import org.fmazmz.casemanager.ticket.model.TicketStatus;
+import org.fmazmz.casemanager.ticket.domain.TicketStatus;
 
 import java.util.UUID;
 

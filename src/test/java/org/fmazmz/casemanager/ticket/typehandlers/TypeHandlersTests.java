@@ -1,12 +1,12 @@
 package org.fmazmz.casemanager.ticket.typehandlers;
 
-import org.fmazmz.casemanager.ticket.model.Priority;
-import org.fmazmz.casemanager.ticket.model.Ticket;
-import org.fmazmz.casemanager.ticket.model.TicketType;
-import org.fmazmz.casemanager.ticket.orchestration.typehandlers.IncidentHandler;
-import org.fmazmz.casemanager.ticket.orchestration.typehandlers.RequestHandler;
-import org.fmazmz.casemanager.ticket.orchestration.typehandlers.TypeHandler;
-import org.fmazmz.casemanager.ticket.orchestration.typehandlers.TypeHandlerFactory;
+import org.fmazmz.casemanager.ticket.domain.Priority;
+import org.fmazmz.casemanager.ticket.domain.Ticket;
+import org.fmazmz.casemanager.ticket.domain.TicketType;
+import org.fmazmz.casemanager.ticket.application.typehandlers.IncidentHandler;
+import org.fmazmz.casemanager.ticket.application.typehandlers.RequestHandler;
+import org.fmazmz.casemanager.ticket.application.typehandlers.TypeHandler;
+import org.fmazmz.casemanager.ticket.application.typehandlers.TypeHandlerFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

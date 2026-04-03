@@ -1,9 +1,9 @@
 package org.fmazmz.casemanager.ticket.dto;
 
-import org.fmazmz.casemanager.ticket.model.Comment;
-import org.fmazmz.casemanager.ticket.model.Priority;
-import org.fmazmz.casemanager.ticket.model.TicketStatus;
-import org.fmazmz.casemanager.ticket.model.TicketType;
+import org.fmazmz.casemanager.ticket.domain.Comment;
+import org.fmazmz.casemanager.ticket.domain.Priority;
+import org.fmazmz.casemanager.ticket.domain.TicketStatus;
+import org.fmazmz.casemanager.ticket.domain.TicketType;
 
 import java.time.Instant;
 import java.util.List;

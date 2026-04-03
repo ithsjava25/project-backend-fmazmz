@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.exception;
 
-import org.fmazmz.casemanager.utils.ApiErrorResponse;
+import org.fmazmz.casemanager.common.api.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

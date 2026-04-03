@@ -1,7 +1,7 @@
 package org.fmazmz.casemanager.ticket.repository;
 
-import org.fmazmz.casemanager.ticket.model.AuditLog;
-import org.fmazmz.casemanager.ticket.model.TicketAction;
+import org.fmazmz.casemanager.audit.domain.AuditLog;
+import org.fmazmz.casemanager.ticket.domain.TicketAction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

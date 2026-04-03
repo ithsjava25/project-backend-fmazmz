@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.user.dto;
 
-import org.fmazmz.casemanager.user.model.User;
+import org.fmazmz.casemanager.user.domain.User;
 
 import java.util.UUID;
 

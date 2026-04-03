@@ -1,6 +1,6 @@
 package org.fmazmz.casemanager.ticket.repository;
 
-import org.fmazmz.casemanager.ticket.model.Attachment;
+import org.fmazmz.casemanager.ticket.domain.Attachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
