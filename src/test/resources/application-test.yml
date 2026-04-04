@@ -1,7 +1,0 @@
-# Valid S3 client settings for @SpringBootTest (no real AWS calls required to construct the bean).
-app:
-  storage:
-    s3:
-      bucket: test-bucket
-      region: us-east-1
-      public-base-url: http://localhost
