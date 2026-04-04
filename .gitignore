@@ -34,3 +34,6 @@ build/
 
 .env
 *.txt
+
+# Log file ingested by Filebeat (docker compose)
+logs/

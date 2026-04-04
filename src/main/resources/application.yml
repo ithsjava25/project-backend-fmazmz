@@ -1,6 +1,13 @@
 server:
   port: 8080
 
+logging:
+  file:
+    name: logs/application.log
+  structured:
+    format:
+      file: logstash
+
 spring:
   application:
     name: case-manager
