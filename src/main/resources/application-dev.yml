@@ -15,3 +15,9 @@ spring:
     init:
       mode: always
       platform: postgresql
+
+logging:
+  level:
+    org.fmazmz.casemanager: debug
+    org.springframework: info
+    org.hibernate: warn

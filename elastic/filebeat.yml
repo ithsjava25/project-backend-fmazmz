@@ -1,0 +1,22 @@
+# Reads JSON lines from the Spring Boot log file
+
+filebeat.inputs:
+  - type: filestream
+    id: casemanager-app
+    enabled: true
+    paths:
+      - /var/log/casemanager/application.log
+    parsers:
+      - ndjson:
+          keys_under_root: true
+          add_error_key: true
+
+setup.template.enabled: false
+setup.ilm.enabled: false
+
+output.elasticsearch:
+  hosts: ["http://elasticsearch:9200"]
+  index: "casemanager-logs-%{+yyyy.MM.dd}"
+
+logging.level: warning
+logging.to_files: false

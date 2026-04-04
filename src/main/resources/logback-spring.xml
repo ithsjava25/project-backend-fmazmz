@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<springProperty name="FILE_LOG_STRUCTURED_FORMAT" source="logging.structured.format.file" defaultValue="logstash"/>
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+	<include resource="org/springframework/boot/logging/logback/structured-file-appender.xml"/>
+	<root level="INFO">
+		<appender-ref ref="CONSOLE"/>
+		<appender-ref ref="FILE"/>
+	</root>
+</configuration>
