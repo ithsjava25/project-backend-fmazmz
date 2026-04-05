@@ -26,6 +26,8 @@ public class TicketMapper {
                 ticket.getResolutionNotes(),
                 ticket.getRequester().getId(),
                 ticket.getAssignee() != null ? ticket.getAssignee().getId() : null,
+                ticket.getAssignmentGroup() != null ? ticket.getAssignmentGroup().getId() : null,
+                ticket.getAssignmentGroup() != null ? ticket.getAssignmentGroup().getName() : null,
                 ticket.getStatus(),
                 ticket.getPriority(),
                 ticket.getCreatedAt(),
