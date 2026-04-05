@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.fmazmz.casemanager.assignmentgroup.domain.AssignmentGroup;
 import org.fmazmz.casemanager.user.domain.User;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -50,6 +51,10 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "assignee_id")
     private User assignee;
+
+    @ManyToOne
+    @JoinColumn(name = "assignment_group_id")
+    private AssignmentGroup assignmentGroup;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

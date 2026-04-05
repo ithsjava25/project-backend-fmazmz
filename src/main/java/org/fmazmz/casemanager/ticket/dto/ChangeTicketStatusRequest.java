@@ -9,6 +9,7 @@ import java.util.UUID;
 public record ChangeTicketStatusRequest(
         @NotNull
         TicketStatus status,
+        UUID assignmentGroup,
         UUID assignee,
         @Size(max = 5000, message = "Public comment must be at most 5000 characters")
         String publicComment,

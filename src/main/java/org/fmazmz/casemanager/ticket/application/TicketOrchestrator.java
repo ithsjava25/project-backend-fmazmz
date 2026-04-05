@@ -15,6 +15,8 @@ import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.application.typehandlers.TypeHandler;
 import org.fmazmz.casemanager.ticket.application.typehandlers.TypeHandlerFactory;
+import org.fmazmz.casemanager.assignmentgroup.domain.AssignmentGroup;
+import org.fmazmz.casemanager.assignmentgroup.repository.AssignmentGroupRepository;
 import org.fmazmz.casemanager.ticket.repository.CommentRepository;
 import org.fmazmz.casemanager.ticket.repository.TicketRepository;
 import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
@@ -38,11 +40,13 @@ public class TicketOrchestrator {
     private final TypeHandlerFactory typeHandlerFactory;
     private final TicketWorkflowValidator workflowValidator;
     private final CommentRepository commentRepository;
+    private final AssignmentGroupRepository assignmentGroupRepository;
 
     public TicketOrchestrator(TicketRepository ticketRepository, UserRepository userRepository,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
                               AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory,
-                              TicketWorkflowValidator workflowValidator, CommentRepository commentRepository) {
+                              TicketWorkflowValidator workflowValidator, CommentRepository commentRepository,
+                              AssignmentGroupRepository assignmentGroupRepository) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
         this.numberGenerator = numberGenerator;
@@ -51,6 +55,7 @@ public class TicketOrchestrator {
         this.typeHandlerFactory = typeHandlerFactory;
         this.workflowValidator = workflowValidator;
         this.commentRepository = commentRepository;
+        this.assignmentGroupRepository = assignmentGroupRepository;
     }
 
     @Transactional
@@ -75,6 +80,12 @@ public class TicketOrchestrator {
         ticket.setDescription(request.description());
         ticket.setRequester(actor);
         ticket.setStatus(TicketStatus.OPEN);
+
+        if (request.assignmentGroupId() != null) {
+            AssignmentGroup group = assignmentGroupRepository.findById(request.assignmentGroupId())
+                    .orElseThrow(() -> new IllegalArgumentException("Assignment group not found"));
+            ticket.setAssignmentGroup(group);
+        }
 
         Ticket saved = ticketRepository.saveAndFlush(ticket);
 
@@ -128,8 +139,22 @@ public class TicketOrchestrator {
         workflowValidator.validateRequiredTransitionFields(toStatus, request);
 
         if (toStatus == TicketStatus.WORK_IN_PROGRESS) {
+            if (request.assignmentGroup() != null) {
+                AssignmentGroup group = assignmentGroupRepository.findById(request.assignmentGroup())
+                        .orElseThrow(() -> new IllegalArgumentException("Assignment group not found"));
+                ticket.setAssignmentGroup(group);
+            }
+
             User assignee = userRepository.findById(request.assignee())
                     .orElseThrow(() -> new IllegalArgumentException("Assignee user not found"));
+
+            if (ticket.getAssignmentGroup() != null
+                    && !assignmentGroupRepository.isUserMember(ticket.getAssignmentGroup().getId(), assignee.getId())) {
+                throw new IllegalArgumentException(
+                        "Assignee must be a member of the ticket's assignment group"
+                );
+            }
+
             ticket.setAssignee(assignee);
 
             Comment internalComment = new Comment();

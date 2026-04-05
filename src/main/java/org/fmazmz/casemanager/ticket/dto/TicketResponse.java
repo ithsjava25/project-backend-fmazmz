@@ -19,6 +19,8 @@ public record TicketResponse(
         String resolutionNotes,
         UUID requesterId,
         UUID assigneeId,
+        UUID assignmentGroupId,
+        String assignmentGroupName,
         TicketStatus status,
         Priority priority,
         Instant createdAt,

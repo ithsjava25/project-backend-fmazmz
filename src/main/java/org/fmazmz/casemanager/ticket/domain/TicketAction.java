@@ -12,7 +12,8 @@ public enum TicketAction {
     COMMENT_INTERNAL,
     UPLOAD_ATTACHMENT,
     REOPEN,
-    LOG_READ;
+    LOG_READ,
+    MANAGE_ASSIGNMENT_GROUPS;
 
     public String permissionName() {
         return "ticket." + name().toLowerCase();
