@@ -2,10 +2,11 @@ package org.fmazmz.casemanager.user.domain;
 
 import lombok.Getter;
 
+import java.util.Set;
+
 @Getter
 public enum AuthProvider {
-    GITHUB("id", "login", "avatar_url"),
-    GOOGLE("sub", "name", "picture");
+    GITHUB("id", "login", "avatar_url");
 
     private final String idAttribute;
     private final String nameAttribute;
@@ -20,8 +21,25 @@ public enum AuthProvider {
     public static AuthProvider fromRegistrationId(String registrationId) {
         return switch (registrationId.toLowerCase()) {
             case "github" -> GITHUB;
-            case "google" -> GOOGLE;
             default -> throw new IllegalArgumentException("Unsupported OAuth2 provider: " + registrationId);
         };
+    }
+
+    public String pendingProviderId() {
+        return switch (this) {
+            case GITHUB -> "PENDING";
+            default -> throw new IllegalStateException("No pending provider id marker configured for " + this.name());
+        };
+    }
+
+    public String unlinkedProviderId() {
+        return switch (this) {
+            case GITHUB -> "UNLINKED";
+            default -> throw new IllegalStateException("No unlinked provider id marker configured for " + this.name());
+        };
+    }
+
+    public Set<String> linkablePlaceholderProviderIds() {
+        return Set.of(pendingProviderId(), unlinkedProviderId());
     }
 }

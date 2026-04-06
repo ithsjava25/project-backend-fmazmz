@@ -6,19 +6,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.fmazmz.casemanager.user.dto.OAuthInfoResponse;
-import org.fmazmz.casemanager.user.dto.SignupRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;
-import org.fmazmz.casemanager.common.api.openapi.SignupErrorResponses;
 import org.fmazmz.casemanager.common.api.openapi.UnauthorizedServerErrorResponses;
 import org.fmazmz.casemanager.common.api.ApiResponseWrapper;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Oauth2 API", description = "Authentication and user onboarding via OAuth2")
@@ -37,7 +31,7 @@ public interface Oauth2Api {
                     schemaProperties = {
                             @SchemaProperty(
                                     name = "data",
-                                    schema = @Schema(oneOf = {OAuthInfoResponse.class, UserResponse.class})
+                                    schema = @Schema(implementation = UserResponse.class)
                             ),
                             @SchemaProperty(
                                     name = "requestId",
@@ -52,24 +46,5 @@ public interface Oauth2Api {
     )
     @UnauthorizedServerErrorResponses
     @GetMapping("me")
-    ResponseEntity<ApiResponseWrapper<?>> me(OAuth2AuthenticationToken authentication);
-
-    @Operation(summary = "Complete signup for authenticated OAuth2 user")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Created",
-            useReturnTypeSchema = true
-    )
-    @SignupErrorResponses
-    @PostMapping("signup")
-    ResponseEntity<ApiResponseWrapper<UserResponse>> signup(
-            OAuth2AuthenticationToken authentication,
-            @Valid
-            @RequestBody
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    description = "Payload to complete user signup"
-            )
-            SignupRequest request
-    );
+    ResponseEntity<ApiResponseWrapper<UserResponse>> me(OAuth2AuthenticationToken authentication);
 }
