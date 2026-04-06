@@ -33,6 +33,9 @@ spring:
               - user:email
 
 app:
+  security:
+    bootstrap-admin-emails: ["firasmoussa60@gmail.com"]
+
   storage:
     provider: s3
     s3:

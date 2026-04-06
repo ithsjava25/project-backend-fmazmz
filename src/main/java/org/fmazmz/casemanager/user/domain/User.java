@@ -31,7 +31,7 @@ public class User {
     @Column(nullable = false)
     private String providerId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String userName;
 
     @Column(unique = true)
