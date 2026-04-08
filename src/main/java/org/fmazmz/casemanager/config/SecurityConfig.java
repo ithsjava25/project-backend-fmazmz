@@ -1,6 +1,7 @@
 package org.fmazmz.casemanager.config;
 
 import org.fmazmz.casemanager.user.application.UserAuthentication;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, UserAuthentication userAuthentication) throws Exception {
@@ -27,14 +31,15 @@ public class SecurityConfig {
                         if (authentication instanceof OAuth2AuthenticationToken token) {
                             userAuthentication.resolveUser(token);
                         }
-                        defaultSuccessHandler.onAuthenticationSuccess(request, response, authentication);
+                        response.sendRedirect(frontendUrl + "/");
+
                     } catch (IllegalStateException | IllegalArgumentException ex) {
                         response.setStatus(403);
                         response.setContentType("application/json");
                         response.getWriter().write("{\"error\":\"" + ex.getMessage().replace("\"", "\\\"") + "\"}");
                     }
                 }))
-                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .logout(logout -> logout.logoutSuccessUrl(frontendUrl + "/"))
                 .csrf(csrf -> csrf.disable())
                 ;
 
