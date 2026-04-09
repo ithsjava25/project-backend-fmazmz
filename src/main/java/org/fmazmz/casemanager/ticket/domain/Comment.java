@@ -1,6 +1,7 @@
 package org.fmazmz.casemanager.ticket.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class Comment {
     @JoinColumn(name = "ticket_id", nullable = false)
     private Ticket ticket;
 
+    @JsonIgnoreProperties({"roles"})
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

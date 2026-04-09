@@ -14,8 +14,14 @@ import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.user.authentication.CurrentUser;
 import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.common.api.ApiResponseWrapper;
+import org.fmazmz.casemanager.common.pagination.PagedResult;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,11 +33,71 @@ import java.util.UUID;
 @Tag(name = "Ticket API", description = "Perform CRUD operations on Tickets")
 @RequestMapping(
         path = "api/v1/tickets",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 @StandardRestApiResponses
 public interface TicketApi {
+
+    @Operation(summary = "List tickets (paginated)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> listTickets(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "List tickets by requester user id (paginated)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping("requester/{userId}")
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> listTicketsByRequester(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID userId,
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "List tickets by assignee user id (paginated)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping("assignee/{userId}")
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> listTicketsByAssignee(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID userId,
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "List tickets by assignment group id (paginated)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping("assignment-group/{assignmentGroupId}")
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> listTicketsByAssignmentGroup(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID assignmentGroupId,
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "Get ticket by id (internal comments only if caller has ticket.comment_internal)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}")
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicket(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId
+    );
+
+    @Operation(summary = "Get ticket by ticket number (e.g. INC0000001; internal comments only if caller has ticket.comment_internal)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("number/{ticketNumber}")
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicketByNumber(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable String ticketNumber
+    );
 
     @Operation(summary = "Create a new Ticket")
     @ApiResponse(
@@ -39,7 +105,7 @@ public interface TicketApi {
             description = "Created",
             useReturnTypeSchema = true
     )
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ApiResponseWrapper<TicketResponse>> createTicket(
             @Parameter(hidden = true) @CurrentUser User actor,
             @Valid
@@ -54,7 +120,7 @@ public interface TicketApi {
     @Operation(summary = "Change ticket status")
     @ApiResponse(responseCode = "200", description = "Updated", useReturnTypeSchema = true)
     @NotFoundApiResponse
-    @PatchMapping("{ticketId}/status")
+    @PatchMapping(path = "{ticketId}/status", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ApiResponseWrapper<TicketResponse>> changeTicketStatus(
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
@@ -64,7 +130,7 @@ public interface TicketApi {
     @Operation(summary = "Add a comment (public or internal work note; visibility is enforced server-side)")
     @ApiResponse(responseCode = "202", description = "Accepted", useReturnTypeSchema = true)
     @NotFoundApiResponse
-    @PostMapping("{ticketId}/comment")
+    @PostMapping(path = "{ticketId}/comment", consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ApiResponseWrapper<TicketResponse>> comment(
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
