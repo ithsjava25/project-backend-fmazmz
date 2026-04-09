@@ -21,6 +21,7 @@ import org.fmazmz.casemanager.ticket.repository.CommentRepository;
 import org.fmazmz.casemanager.ticket.repository.TicketRepository;
 import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.application.workflow.TicketWorkflowValidator;
+import org.fmazmz.casemanager.user.application.UserLookupService;
 import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.user.repository.UserRepository;
 
@@ -32,8 +33,9 @@ import java.util.UUID;
 @Service
 public class TicketOrchestrator {
     private final TicketRepository ticketRepository;
-    private final UserRepository userRepository;
 
+    private final UserRepository userRepository;
+    private final UserLookupService userLookupService;
     private final TicketNumberGenerator numberGenerator;
     private final PermissionEvaluator permissionEvaluator;
     private final AuditLogWriter auditLogWriter;
@@ -42,13 +44,14 @@ public class TicketOrchestrator {
     private final CommentRepository commentRepository;
     private final AssignmentGroupRepository assignmentGroupRepository;
 
-    public TicketOrchestrator(TicketRepository ticketRepository, UserRepository userRepository,
+    public TicketOrchestrator(TicketRepository ticketRepository, UserRepository userRepository, UserLookupService userLookupService,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
                               AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory,
                               TicketWorkflowValidator workflowValidator, CommentRepository commentRepository,
                               AssignmentGroupRepository assignmentGroupRepository) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
+        this.userLookupService = userLookupService;
         this.numberGenerator = numberGenerator;
         this.permissionEvaluator = permissionEvaluator;
         this.auditLogWriter = auditLogWriter;
@@ -59,9 +62,8 @@ public class TicketOrchestrator {
     }
 
     @Transactional
-    public TicketResponse createTicket(CreateTicketRequest request, UUID requesterId) {
-        User actor = userRepository.findById(requesterId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    public TicketResponse createTicket(CreateTicketRequest request, UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
 
         if (!permissionEvaluator.hasPermission(actor, TicketAction.CREATE)) {
             throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.CREATE);
@@ -103,8 +105,7 @@ public class TicketOrchestrator {
 
     @Transactional
     public TicketResponse changeStatus(UUID ticketId, ChangeTicketStatusRequest request, UUID actorId) {
-        User actor = userRepository.findById(actorId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User actor = userLookupService.requireActor(actorId);
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
@@ -191,8 +192,7 @@ public class TicketOrchestrator {
 
     @Transactional
     public TicketResponse addComment(UUID ticketId, TicketCommentRequest request, UUID actorId) {
-        User actor = userRepository.findById(actorId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User actor = userLookupService.requireActor(actorId);
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
