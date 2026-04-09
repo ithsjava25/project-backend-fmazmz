@@ -84,6 +84,24 @@ public class TicketController implements TicketApi {
         return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.findByAssignmentGroupId(actor.getId(), assignmentGroupId, pageable)));
     }
 
+    @GetMapping("{ticketId}")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicket(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId) {
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.findById(actor.getId(), ticketId)));
+    }
+
+    @GetMapping("number/{ticketNumber}")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicketByNumber(
+            @CurrentUser User actor,
+            @PathVariable String ticketNumber) {
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.findByNumber(actor.getId(), ticketNumber)));
+    }
+
     @PostMapping
     @Override
     public ResponseEntity<ApiResponseWrapper<TicketResponse>> createTicket(

@@ -1,5 +1,6 @@
 package org.fmazmz.casemanager.ticket.application.workflow;
 
+import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
 import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.user.repository.PermissionRepository;
@@ -12,6 +13,19 @@ public class PermissionEvaluator {
 
     public PermissionEvaluator(PermissionRepository permissionRepository) {
         this.permissionRepository = permissionRepository;
+    }
+
+    /**
+     * Whether API responses should include internal (non-public) ticket comments for this user.
+     */
+    public boolean includeInternalComments(User actor) {
+        return hasPermission(actor, TicketAction.COMMENT_INTERNAL);
+    }
+
+    public void requirePermission(User actingUser, TicketAction requiredAction) {
+        if (!hasPermission(actingUser, requiredAction)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + requiredAction);
+        }
     }
 
     public boolean hasPermission(User actingUser, TicketAction action) {

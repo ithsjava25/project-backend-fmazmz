@@ -81,6 +81,24 @@ public interface TicketApi {
             Pageable pageable
     );
 
+    @Operation(summary = "Get ticket by id (internal comments only if caller has ticket.comment_internal)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}")
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicket(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId
+    );
+
+    @Operation(summary = "Get ticket by ticket number (e.g. INC0000001; internal comments only if caller has ticket.comment_internal)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("number/{ticketNumber}")
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> getTicketByNumber(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable String ticketNumber
+    );
+
     @Operation(summary = "Create a new Ticket")
     @ApiResponse(
             responseCode = "201",

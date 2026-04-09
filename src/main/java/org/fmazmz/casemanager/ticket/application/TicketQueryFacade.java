@@ -1,7 +1,6 @@
 package org.fmazmz.casemanager.ticket.application;
 
 import lombok.extern.slf4j.Slf4j;
-import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -33,8 +33,7 @@ public class TicketQueryFacade {
 
     @Transactional(readOnly = true)
     public PagedResult<TicketResponse> findAll(UUID actorId, Pageable pageable) {
-        User actor = userLookupService.requireActor(actorId);
-        requireRead(actor);
+        requireActorWithTicketRead(actorId);
 
         log.debug("Listing tickets: actorId={}, filter=all, page={}", actorId, pageable.getPageNumber());
 
@@ -43,9 +42,36 @@ public class TicketQueryFacade {
     }
 
     @Transactional(readOnly = true)
+    public TicketResponse findById(UUID actorId, UUID ticketId) {
+        User actor = requireActorWithTicketRead(actorId);
+
+        log.debug("Get ticket by id: actorId={}, ticketId={}", actorId, ticketId);
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional(readOnly = true)
+    public TicketResponse findByNumber(UUID actorId, String ticketNumber) {
+        User actor = requireActorWithTicketRead(actorId);
+
+        if (!StringUtils.hasText(ticketNumber)) {
+            throw new IllegalArgumentException("Ticket number is required");
+        }
+
+        log.debug("Get ticket by number: actorId={}, ticketNumber={}", actorId, ticketNumber);
+
+        Ticket ticket = ticketRepository.findByNumber(ticketNumber.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found with number: " + ticketNumber.trim()));
+
+        return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional(readOnly = true)
     public PagedResult<TicketResponse> findByRequesterId(UUID actorId, UUID requesterId, Pageable pageable) {
-        User actor = userLookupService.requireActor(actorId);
-        requireRead(actor);
+        requireActorWithTicketRead(actorId);
 
         log.debug("Listing tickets: actorId={}, filter=requesterId={}, page={}", actorId, requesterId, pageable.getPageNumber());
 
@@ -55,8 +81,7 @@ public class TicketQueryFacade {
 
     @Transactional(readOnly = true)
     public PagedResult<TicketResponse> findByAssigneeId(UUID actorId, UUID assigneeId, Pageable pageable) {
-        User actor = userLookupService.requireActor(actorId);
-        requireRead(actor);
+        requireActorWithTicketRead(actorId);
 
         log.debug("Listing tickets: actorId={}, filter=assigneeId={}, page={}", actorId, assigneeId, pageable.getPageNumber());
 
@@ -66,8 +91,7 @@ public class TicketQueryFacade {
 
     @Transactional(readOnly = true)
     public PagedResult<TicketResponse> findByAssignmentGroupId(UUID actorId, UUID assignmentGroupId, Pageable pageable) {
-        User actor = userLookupService.requireActor(actorId);
-        requireRead(actor);
+        requireActorWithTicketRead(actorId);
 
         log.debug("Listing tickets: actorId={}, filter=assignmentGroupId={}, page={}", actorId, assignmentGroupId, pageable.getPageNumber());
 
@@ -75,11 +99,9 @@ public class TicketQueryFacade {
         return TicketMapper.mapPage(page);
     }
 
-
-    private void requireRead(User actor) {
-        TicketAction action = TicketAction.READ;
-        if (!permissionEvaluator.hasPermission(actor, action)) {
-            throw new AccessDeniedException("User is not authorized to perform action: " + action);
-        }
+    private User requireActorWithTicketRead(UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
+        permissionEvaluator.requirePermission(actor, TicketAction.READ);
+        return actor;
     }
 }

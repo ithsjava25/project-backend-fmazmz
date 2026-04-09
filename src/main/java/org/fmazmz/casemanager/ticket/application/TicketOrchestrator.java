@@ -100,7 +100,7 @@ public class TicketOrchestrator {
                 TicketStatus.OPEN.name()
         );
         
-        return TicketMapper.toDto(saved, includeInternalComments(actor));
+        return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
     }
 
     @Transactional
@@ -187,7 +187,7 @@ public class TicketOrchestrator {
         TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
         auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
 
-        return TicketMapper.toDto(saved, includeInternalComments(actor));
+        return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
     }
 
     @Transactional
@@ -210,10 +210,6 @@ public class TicketOrchestrator {
         Comment saved = commentRepository.saveAndFlush(comment);
         ticket.getComments().add(saved);
 
-        return TicketMapper.toDto(ticket, includeInternalComments(actor));
-    }
-
-    private boolean includeInternalComments(User actor) {
-        return permissionEvaluator.hasPermission(actor, TicketAction.COMMENT_INTERNAL);
+        return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
     }
 }
