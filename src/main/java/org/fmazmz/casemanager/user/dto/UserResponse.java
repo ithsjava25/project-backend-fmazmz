@@ -1,7 +1,6 @@
 package org.fmazmz.casemanager.user.dto;
 
-import org.fmazmz.casemanager.user.domain.User;
-
+import java.util.List;
 import java.util.UUID;
 
 public record UserResponse(
@@ -10,16 +9,7 @@ public record UserResponse(
         String provider,
         String userName,
         String email,
-        String avatar
+        String avatar,
+        List<String> roles
 ) {
-    public static UserResponse from(User user) {
-        return new UserResponse(
-                true,
-                user.getId(),
-                user.getProvider().name(),
-                user.getUserName(),
-                user.getEmail(),
-                user.getAvatarUrl()
-        );
-    }
 }

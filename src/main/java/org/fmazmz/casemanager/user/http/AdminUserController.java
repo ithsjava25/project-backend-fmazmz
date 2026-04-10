@@ -3,6 +3,7 @@ package org.fmazmz.casemanager.user.http;
 import jakarta.validation.Valid;
 import org.fmazmz.casemanager.common.api.ApiResponseWrapper;
 import org.fmazmz.casemanager.user.application.UserAdminService;
+import org.fmazmz.casemanager.user.application.UserLookupService;
 import org.fmazmz.casemanager.user.authentication.CurrentUser;
 import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.user.dto.CreateUserRequest;
@@ -19,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminUserController implements AdminUserApi {
 
     private final UserAdminService userAdminService;
+    private final UserLookupService userLookupService;
 
-    public AdminUserController(UserAdminService userAdminService) {
+    public AdminUserController(UserAdminService userAdminService, UserLookupService userLookupService) {
         this.userAdminService = userAdminService;
+        this.userLookupService = userLookupService;
     }
 
     @PostMapping("users")
@@ -33,7 +36,7 @@ public class AdminUserController implements AdminUserApi {
         var created = userAdminService.createUser(admin, request.email(), request.role());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ApiResponseWrapper<>(UserResponse.from(created)));
+                .body(new ApiResponseWrapper<>(userLookupService.toResponseWithRoles(created)));
     }
 
     @PutMapping("users/roles")
