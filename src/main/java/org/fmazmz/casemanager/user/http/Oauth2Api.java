@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Tag(name = "Oauth2 API", description = "Authentication and user onboarding via OAuth2")
 @RequestMapping(
         path = "api/v1/auth",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public interface Oauth2Api {
