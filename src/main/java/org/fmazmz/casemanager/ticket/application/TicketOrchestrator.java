@@ -23,7 +23,6 @@ import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.application.workflow.TicketWorkflowValidator;
 import org.fmazmz.casemanager.user.application.UserLookupService;
 import org.fmazmz.casemanager.user.domain.User;
-import org.fmazmz.casemanager.user.repository.UserRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +33,6 @@ import java.util.UUID;
 public class TicketOrchestrator {
     private final TicketRepository ticketRepository;
 
-    private final UserRepository userRepository;
     private final UserLookupService userLookupService;
     private final TicketNumberGenerator numberGenerator;
     private final PermissionEvaluator permissionEvaluator;
@@ -44,13 +42,12 @@ public class TicketOrchestrator {
     private final CommentRepository commentRepository;
     private final AssignmentGroupRepository assignmentGroupRepository;
 
-    public TicketOrchestrator(TicketRepository ticketRepository, UserRepository userRepository, UserLookupService userLookupService,
+    public TicketOrchestrator(TicketRepository ticketRepository, UserLookupService userLookupService,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
                               AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory,
                               TicketWorkflowValidator workflowValidator, CommentRepository commentRepository,
                               AssignmentGroupRepository assignmentGroupRepository) {
         this.ticketRepository = ticketRepository;
-        this.userRepository = userRepository;
         this.userLookupService = userLookupService;
         this.numberGenerator = numberGenerator;
         this.permissionEvaluator = permissionEvaluator;
@@ -139,25 +136,13 @@ public class TicketOrchestrator {
 
         workflowValidator.validateRequiredTransitionFields(toStatus, request);
 
+        if (toStatus == TicketStatus.ASSIGNED || toStatus == TicketStatus.WORK_IN_PROGRESS) {
+            TicketWorkflowValidator.ResolvedAssignment resolved = workflowValidator.resolveAssignmentOrThrow(request);
+            ticket.setAssignmentGroup(resolved.group());
+            ticket.setAssignee(resolved.assignee());
+        }
+
         if (toStatus == TicketStatus.WORK_IN_PROGRESS) {
-            if (request.assignmentGroup() != null) {
-                AssignmentGroup group = assignmentGroupRepository.findById(request.assignmentGroup())
-                        .orElseThrow(() -> new IllegalArgumentException("Assignment group not found"));
-                ticket.setAssignmentGroup(group);
-            }
-
-            User assignee = userRepository.findById(request.assignee())
-                    .orElseThrow(() -> new IllegalArgumentException("Assignee user not found"));
-
-            if (ticket.getAssignmentGroup() != null
-                    && !assignmentGroupRepository.isUserMember(ticket.getAssignmentGroup().getId(), assignee.getId())) {
-                throw new IllegalArgumentException(
-                        "Assignee must be a member of the ticket's assignment group"
-                );
-            }
-
-            ticket.setAssignee(assignee);
-
             Comment internalComment = new Comment();
             internalComment.setTicket(ticket);
             internalComment.setUser(actor);
