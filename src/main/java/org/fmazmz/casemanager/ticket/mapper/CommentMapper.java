@@ -3,6 +3,7 @@ package org.fmazmz.casemanager.ticket.mapper;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.domain.Comment;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
+import org.fmazmz.casemanager.ticket.dto.TicketCommentResponse;
 import org.fmazmz.casemanager.user.domain.User;
 import org.springframework.stereotype.Component;
 
@@ -17,5 +18,16 @@ public class CommentMapper {
         comment.setMessage(dto.comment());
 
         return comment;
+    }
+
+    public static TicketCommentResponse toDto(Comment comment) {
+        return new TicketCommentResponse(
+                comment.getId(),
+                comment.getVisibility(),
+                comment.getTicket().getId(),
+                comment.getUser().getId(),
+                comment.getMessage(),
+                comment.getCreatedAt()
+        );
     }
 }
