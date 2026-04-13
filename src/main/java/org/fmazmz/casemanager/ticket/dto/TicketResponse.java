@@ -15,7 +15,7 @@ public record TicketResponse(
         TicketType type,
         String title,
         String description,
-        List<Comment> comments,
+        List<TicketCommentResponse> comments,
         String resolutionNotes,
         UUID requesterId,
         UUID assigneeId,

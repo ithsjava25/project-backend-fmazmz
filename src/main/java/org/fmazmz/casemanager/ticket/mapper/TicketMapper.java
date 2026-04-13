@@ -38,6 +38,7 @@ public class TicketMapper {
         var comments = ticket.getComments().stream()
                 .filter(c -> includeInternalComments || c.getVisibility() == CommentVisibility.PUBLIC)
                 .sorted(Comparator.comparing(Comment::getCreatedAt))
+                .map(CommentMapper::toDto)
                 .toList();
         return new TicketResponse(
                 ticket.getId(),
