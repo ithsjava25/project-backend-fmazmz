@@ -12,6 +12,7 @@ import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.user.authentication.CurrentUser;
 import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.common.api.ApiResponseWrapper;
@@ -136,6 +137,16 @@ public interface TicketApi {
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
             @Valid @RequestBody UpdateTicketPriorityRequest request
+    );
+
+    @Operation(summary = "Update ticket title and/or description")
+    @ApiResponse(responseCode = "200", description = "Updated", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @PatchMapping(path = "{ticketId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> updateTicket(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @Valid @RequestBody UpdateTicketRequest request
     );
 
     @Operation(summary = "Add a comment (public or internal work note; visibility is enforced server-side)")
