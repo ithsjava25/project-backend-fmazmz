@@ -23,7 +23,6 @@ public enum RoleName {
     REPORTER(EnumSet.of(
             TicketAction.CREATE,
             TicketAction.READ,
-            TicketAction.UPDATE,
             TicketAction.COMMENT_PUBLIC,
             TicketAction.UPLOAD_ATTACHMENT,
             TicketAction.REOPEN

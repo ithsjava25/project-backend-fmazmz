@@ -2,12 +2,14 @@ package org.fmazmz.casemanager.ticket.application;
 
 import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.audit.application.AuditLogWriter;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.mapper.CommentMapper;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
 import org.fmazmz.casemanager.ticket.domain.Comment;
 import org.fmazmz.casemanager.ticket.domain.CommentVisibility;
+import org.fmazmz.casemanager.ticket.domain.Priority;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
 import org.fmazmz.casemanager.ticket.domain.TicketStatus;
@@ -171,6 +173,46 @@ public class TicketOrchestrator {
 
         TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
         auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
+
+        return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional
+    public TicketResponse changePriority(UUID ticketId, UpdateTicketPriorityRequest request, UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
+
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_PRIORITY)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.CHANGE_PRIORITY);
+        }
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        Priority fromPriority = ticket.getPriority();
+        Priority toPriority = request.priority();
+
+        if (fromPriority == toPriority) {
+            return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+        }
+
+        Comment internalComment = new Comment();
+        internalComment.setTicket(ticket);
+        internalComment.setUser(actor);
+        internalComment.setVisibility(CommentVisibility.INTERNAL);
+        internalComment.setMessage(request.internalComment().trim());
+        commentRepository.save(internalComment);
+
+        ticket.setPriority(toPriority);
+        Ticket saved = ticketRepository.saveAndFlush(ticket);
+
+        auditLogWriter.logChange(
+                saved,
+                actor,
+                TicketAction.CHANGE_PRIORITY,
+                "priority",
+                fromPriority != null ? fromPriority.name() : null,
+                toPriority.name()
+        );
 
         return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
     }

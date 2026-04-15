@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.fmazmz.casemanager.common.api.openapi.NotFoundApiResponse;
 import org.fmazmz.casemanager.common.api.openapi.StandardRestApiResponses;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
@@ -125,6 +126,16 @@ public interface TicketApi {
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
             @Valid @RequestBody ChangeTicketStatusRequest request
+    );
+
+    @Operation(summary = "Update ticket priority")
+    @ApiResponse(responseCode = "200", description = "Updated", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @PatchMapping(path = "{ticketId}/priority", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> changeTicketPriority(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @Valid @RequestBody UpdateTicketPriorityRequest request
     );
 
     @Operation(summary = "Add a comment (public or internal work note; visibility is enforced server-side)")
