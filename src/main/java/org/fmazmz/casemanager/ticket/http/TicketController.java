@@ -1,10 +1,12 @@
 package org.fmazmz.casemanager.ticket.http;
 
 import jakarta.validation.Valid;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.application.TicketOrchestrator;
 import org.fmazmz.casemanager.ticket.application.TicketQueryFacade;
 import org.fmazmz.casemanager.user.authentication.CurrentUser;
@@ -123,6 +125,30 @@ public class TicketController implements TicketApi {
             @RequestBody @Valid ChangeTicketStatusRequest request) {
 
         TicketResponse response = ticketOrchestrator.changeStatus(ticketId, request, actor.getId());
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PatchMapping("{ticketId}/priority")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> changeTicketPriority(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @RequestBody @Valid UpdateTicketPriorityRequest request) {
+
+        TicketResponse response = ticketOrchestrator.changePriority(ticketId, request, actor.getId());
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PatchMapping("{ticketId}")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> updateTicket(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @RequestBody @Valid UpdateTicketRequest request) {
+
+        TicketResponse response = ticketOrchestrator.updateTicket(ticketId, request, actor.getId());
 
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }

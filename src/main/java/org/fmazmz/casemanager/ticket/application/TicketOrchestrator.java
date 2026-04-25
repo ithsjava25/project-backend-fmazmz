@@ -2,12 +2,15 @@ package org.fmazmz.casemanager.ticket.application;
 
 import org.fmazmz.casemanager.exception.AccessDeniedException;
 import org.fmazmz.casemanager.audit.application.AuditLogWriter;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.mapper.CommentMapper;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
 import org.fmazmz.casemanager.ticket.domain.Comment;
 import org.fmazmz.casemanager.ticket.domain.CommentVisibility;
+import org.fmazmz.casemanager.ticket.domain.Priority;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
 import org.fmazmz.casemanager.ticket.domain.TicketStatus;
@@ -26,6 +29,7 @@ import org.fmazmz.casemanager.user.domain.User;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -172,6 +176,97 @@ public class TicketOrchestrator {
         TicketAction auditAction = TicketAction.fromPermissionName(requiredPermissionName);
         auditLogWriter.logChange(saved, actor, auditAction, "status", oldStatus, toStatus.name());
 
+        return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional
+    public TicketResponse changePriority(UUID ticketId, UpdateTicketPriorityRequest request, UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
+
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_PRIORITY)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.CHANGE_PRIORITY);
+        }
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        Priority fromPriority = ticket.getPriority();
+        Priority toPriority = request.priority();
+
+        if (fromPriority == toPriority) {
+            return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+        }
+
+        Comment internalComment = new Comment();
+        internalComment.setTicket(ticket);
+        internalComment.setUser(actor);
+        internalComment.setVisibility(CommentVisibility.INTERNAL);
+        internalComment.setMessage(request.internalComment().trim());
+        commentRepository.save(internalComment);
+
+        ticket.setPriority(toPriority);
+        Ticket saved = ticketRepository.saveAndFlush(ticket);
+
+        auditLogWriter.logChange(
+                saved,
+                actor,
+                TicketAction.CHANGE_PRIORITY,
+                "priority",
+                fromPriority != null ? fromPriority.name() : null,
+                toPriority.name()
+        );
+
+        return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional
+    public TicketResponse updateTicket(UUID ticketId, UpdateTicketRequest request, UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
+
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.UPDATE)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.UPDATE);
+        }
+
+        if (request.title() == null && request.description() == null) {
+            throw new IllegalArgumentException("At least one field must be provided: title or description");
+        }
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
+        boolean changed = false;
+
+        if (request.title() != null) {
+            String newTitle = request.title().trim();
+            if (!StringUtils.hasText(newTitle)) {
+                throw new IllegalArgumentException("Title must not be blank");
+            }
+            if (!newTitle.equals(ticket.getTitle())) {
+                String oldTitle = ticket.getTitle();
+                ticket.setTitle(newTitle);
+                auditLogWriter.logChange(ticket, actor, TicketAction.UPDATE, "title", oldTitle, newTitle);
+                changed = true;
+            }
+        }
+
+        if (request.description() != null) {
+            String newDescription = request.description().trim();
+            if (!StringUtils.hasText(newDescription)) {
+                throw new IllegalArgumentException("Description must not be blank");
+            }
+            if (!newDescription.equals(ticket.getDescription())) {
+                String oldDescription = ticket.getDescription();
+                ticket.setDescription(newDescription);
+                auditLogWriter.logChange(ticket, actor, TicketAction.UPDATE, "description", oldDescription, newDescription);
+                changed = true;
+            }
+        }
+
+        if (!changed) {
+            return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+        }
+
+        Ticket saved = ticketRepository.saveAndFlush(ticket);
         return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
     }
 
