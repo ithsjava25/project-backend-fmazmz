@@ -45,6 +45,8 @@ app:
 
   storage:
     provider: s3
+    # Duration of S3 pre-signed GET URLs
+    presign-get-duration-minutes: 15
     s3:
       bucket: ${AWS_S3_BUCKET}
       region: ${AWS_REGION}

@@ -10,6 +10,7 @@ import org.fmazmz.casemanager.common.api.openapi.NotFoundApiResponse;
 import org.fmazmz.casemanager.common.api.openapi.StandardRestApiResponses;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
+import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -180,5 +181,19 @@ public interface TicketApi {
             )
             @RequestPart("file")
             MultipartFile file
+    );
+
+    @Operation(
+            summary = "Get a time-limited URL to view an attachment (S3 pre-signed GET)",
+            description = "For private buckets, use this URL in the frontend (link, window.open) instead of the stored public URL. "
+                    + "Same role as a read-only SAS token on Azure Blob Storage. Requires ticket read permission (ticket.read)."
+    )
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}/attachments/{attachmentId}/view-url")
+    ResponseEntity<ApiResponseWrapper<AttachmentViewUrlResponse>> getAttachmentViewUrl(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @PathVariable UUID attachmentId
     );
 }

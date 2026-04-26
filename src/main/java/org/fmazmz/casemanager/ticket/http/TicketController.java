@@ -5,6 +5,7 @@ import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.application.TicketOrchestrator;
@@ -177,6 +178,21 @@ public class TicketController implements TicketApi {
 
         TicketResponse response = ticketOrchestrator.uploadAttachment(ticketId, file, actor.getId());
 
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @GetMapping("{ticketId}/attachments/{attachmentId}/view-url")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<AttachmentViewUrlResponse>> getAttachmentViewUrl(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @PathVariable UUID attachmentId) {
+
+        AttachmentViewUrlResponse response = ticketQueryFacade.getAttachmentViewUrl(
+                actor.getId(),
+                ticketId,
+                attachmentId
+        );
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }
 }

@@ -1,30 +1,46 @@
 package org.fmazmz.casemanager.storage.s3;
 
 import lombok.extern.slf4j.Slf4j;
+import org.fmazmz.casemanager.storage.domain.PresignedGetObjectResult;
+import org.fmazmz.casemanager.storage.domain.StorageObject;
 import org.fmazmz.casemanager.storage.domain.StorageService;
 import org.fmazmz.casemanager.storage.domain.StoreObjectRequest;
-import org.fmazmz.casemanager.storage.domain.StorageObject;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import java.time.Duration;
+import java.time.Instant;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 @Service
 @ConditionalOnProperty(prefix = "app.storage", name = "provider", havingValue = "s3")
 @Slf4j
 public class S3StorageAdapter implements StorageService {
+    private static final Duration MAX_PRESIGN_VALIDITY = Duration.ofDays(7);
+
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final S3StorageProperties properties;
 
-    public S3StorageAdapter(S3Client s3Client, S3StorageProperties s3Properties) {
+    public S3StorageAdapter(
+            S3Client s3Client,
+            S3Presigner s3Presigner,
+            S3StorageProperties s3Properties
+    ) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.properties = s3Properties;
     }
 
@@ -134,6 +150,68 @@ public class S3StorageAdapter implements StorageService {
         } catch (SdkException e) {
             long durationMs = (System.nanoTime() - startNs) / 1_000_000L;
             log.error("S3 DeleteObject: AWS SDK error bucket={}, key={}, durationMs={}", bucket, key, durationMs, e);
+            throw e;
+        }
+    }
+
+    @Override
+    public PresignedGetObjectResult presignGetObject(String key, Duration validity, String fileName, String contentType) {
+        if (validity == null || validity.isZero() || validity.isNegative()) {
+            throw new IllegalArgumentException("presign validity must be positive");
+        }
+        if (validity.compareTo(MAX_PRESIGN_VALIDITY) > 0) {
+            throw new IllegalArgumentException("presign validity must not exceed " + MAX_PRESIGN_VALIDITY);
+        }
+        long startNs = System.nanoTime();
+        String bucket = properties.getBucket();
+        log.info("S3 presign GetObject: requesting bucket={}, key={}, validity={}, fileNameSet={}, contentTypeSet={}",
+                bucket,
+                key,
+                validity,
+                StringUtils.hasText(fileName),
+                StringUtils.hasText(contentType));
+        try {
+            GetObjectRequest.Builder getB = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key);
+            if (StringUtils.hasText(fileName)) {
+                String safe = fileName.replace("\"", "");
+                getB.responseContentDisposition("inline; filename=\"" + safe + "\"");
+            }
+            if (StringUtils.hasText(contentType)) {
+                getB.responseContentType(contentType);
+            }
+            GetObjectRequest getObjectRequest = getB.build();
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(validity)
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+            PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignRequest);
+            long durationMs = (System.nanoTime() - startNs) / 1_000_000L;
+            String url = presigned.url().toString();
+            Instant expiresAt = Instant.now().plus(validity);
+            log.info("S3 presign GetObject: success bucket={}, key={}, durationMs={}, expiresAt={}",
+                    bucket,
+                    key,
+                    durationMs,
+                    expiresAt);
+            return new PresignedGetObjectResult(url, expiresAt);
+        } catch (S3Exception e) {
+            long durationMs = (System.nanoTime() - startNs) / 1_000_000L;
+            log.error(
+                    "S3 presign GetObject: failed bucket={}, key={}, statusCode={}, awsErrorCode={}, requestId={}, durationMs={}",
+                    bucket,
+                    key,
+                    e.statusCode(),
+                    e.awsErrorDetails() != null ? e.awsErrorDetails().errorCode() : "n/a",
+                    e.requestId() != null ? e.requestId() : "n/a",
+                    durationMs,
+                    e
+            );
+            throw e;
+        } catch (SdkException e) {
+            long durationMs = (System.nanoTime() - startNs) / 1_000_000L;
+            log.error("S3 presign GetObject: AWS SDK error bucket={}, key={}, durationMs={}", bucket, key, durationMs, e);
             throw e;
         }
     }
