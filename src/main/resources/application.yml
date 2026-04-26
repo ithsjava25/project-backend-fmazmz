@@ -33,6 +33,10 @@ spring:
               - user:email
 
 app:
+  # When true (e.g. application-dev), allow any http://localhost:* and http://127.0.0.1:* origin
+  cors:
+    allow-localhost-origins: false
+
   frontend:
     url: http://localhost:3001
 
@@ -41,6 +45,8 @@ app:
 
   storage:
     provider: s3
+    # Duration of S3 pre-signed GET URLs
+    presign-get-duration-minutes: 15
     s3:
       bucket: ${AWS_S3_BUCKET}
       region: ${AWS_REGION}

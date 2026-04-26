@@ -5,6 +5,7 @@ import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.application.TicketOrchestrator;
@@ -25,6 +26,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -162,6 +166,33 @@ public class TicketController implements TicketApi {
 
         TicketResponse response = ticketOrchestrator.addComment(ticketId, request, actor.getId());
 
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PostMapping(path = "{ticketId}/attachment", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> uploadAttachment(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @RequestPart("file") MultipartFile file) {
+
+        TicketResponse response = ticketOrchestrator.uploadAttachment(ticketId, file, actor.getId());
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @GetMapping("{ticketId}/attachments/{attachmentId}/view-url")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<AttachmentViewUrlResponse>> getAttachmentViewUrl(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @PathVariable UUID attachmentId) {
+
+        AttachmentViewUrlResponse response = ticketQueryFacade.getAttachmentViewUrl(
+                actor.getId(),
+                ticketId,
+                attachmentId
+        );
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }
 }

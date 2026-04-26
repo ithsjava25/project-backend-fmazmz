@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MultipartException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,6 +37,17 @@ public class GlobalExceptionHandler {
                 .body(new ApiErrorResponse(
                         HttpStatus.BAD_REQUEST.name(),
                         ex.getMessage(),
+                        HttpStatus.BAD_REQUEST.value()));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiErrorResponse> handleMultipartException(MultipartException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiErrorResponse(
+                        HttpStatus.BAD_REQUEST.name(),
+                        "Expected multipart/form-data with a part named file (e.g. use Swagger file upload, not a JSON body): "
+                                + ex.getMessage(),
                         HttpStatus.BAD_REQUEST.value()));
     }
 

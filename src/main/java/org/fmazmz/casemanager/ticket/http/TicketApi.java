@@ -2,6 +2,7 @@ package org.fmazmz.casemanager.ticket.http;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import org.fmazmz.casemanager.common.api.openapi.NotFoundApiResponse;
 import org.fmazmz.casemanager.common.api.openapi.StandardRestApiResponses;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
+import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -29,6 +31,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -157,5 +161,39 @@ public interface TicketApi {
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
             @Valid @RequestBody TicketCommentRequest request
+    );
+
+    @Operation(
+            summary = "Upload attachment to ticket and log as comment",
+            description = "Use multipart/form-data with a part named `file` (not JSON). In Swagger, choose a file; do not send a JSON body."
+    )
+    @ApiResponse(responseCode = "200", description = "Ok (attachment stored and public comment created)", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @PostMapping(path = "{ticketId}/attachment", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<ApiResponseWrapper<TicketResponse>> uploadAttachment(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @Parameter(
+                    name = "file",
+                    required = true,
+                    description = "Binary file; form field name must be exactly \"file\"",
+                    schema = @Schema(type = "string", format = "binary")
+            )
+            @RequestPart("file")
+            MultipartFile file
+    );
+
+    @Operation(
+            summary = "Get a time-limited URL to view an attachment (S3 pre-signed GET)",
+            description = "For private buckets, use this URL in the frontend (link, window.open) instead of the stored public URL. "
+                    + "Same role as a read-only SAS token on Azure Blob Storage. Requires ticket read permission (ticket.read)."
+    )
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}/attachments/{attachmentId}/view-url")
+    ResponseEntity<ApiResponseWrapper<AttachmentViewUrlResponse>> getAttachmentViewUrl(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @PathVariable UUID attachmentId
     );
 }

@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     defer-datasource-initialization: true
 
@@ -15,6 +15,10 @@ spring:
     init:
       mode: always
       platform: postgresql
+
+app:
+  cors:
+    allow-localhost-origins: true
 
 logging:
   level:

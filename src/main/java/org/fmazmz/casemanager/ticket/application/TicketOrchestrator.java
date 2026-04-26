@@ -22,17 +22,26 @@ import org.fmazmz.casemanager.assignmentgroup.domain.AssignmentGroup;
 import org.fmazmz.casemanager.assignmentgroup.repository.AssignmentGroupRepository;
 import org.fmazmz.casemanager.ticket.repository.CommentRepository;
 import org.fmazmz.casemanager.ticket.repository.TicketRepository;
+import org.fmazmz.casemanager.ticket.repository.AttachmentRepository;
 import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.application.workflow.TicketWorkflowValidator;
+import org.fmazmz.casemanager.storage.domain.StorageObject;
+import org.fmazmz.casemanager.storage.domain.StorageService;
+import org.fmazmz.casemanager.storage.domain.StoreObjectRequest;
+import org.fmazmz.casemanager.ticket.domain.Attachment;
 import org.fmazmz.casemanager.user.application.UserLookupService;
 import org.fmazmz.casemanager.user.domain.User;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class TicketOrchestrator {
     private final TicketRepository ticketRepository;
@@ -45,12 +54,16 @@ public class TicketOrchestrator {
     private final TicketWorkflowValidator workflowValidator;
     private final CommentRepository commentRepository;
     private final AssignmentGroupRepository assignmentGroupRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final StorageService storageService;
 
     public TicketOrchestrator(TicketRepository ticketRepository, UserLookupService userLookupService,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
                               AuditLogWriter auditLogWriter, TypeHandlerFactory typeHandlerFactory,
                               TicketWorkflowValidator workflowValidator, CommentRepository commentRepository,
-                              AssignmentGroupRepository assignmentGroupRepository) {
+                              AssignmentGroupRepository assignmentGroupRepository,
+                              AttachmentRepository attachmentRepository,
+                              StorageService storageService) {
         this.ticketRepository = ticketRepository;
         this.userLookupService = userLookupService;
         this.numberGenerator = numberGenerator;
@@ -60,6 +73,8 @@ public class TicketOrchestrator {
         this.workflowValidator = workflowValidator;
         this.commentRepository = commentRepository;
         this.assignmentGroupRepository = assignmentGroupRepository;
+        this.attachmentRepository = attachmentRepository;
+        this.storageService = storageService;
     }
 
     @Transactional
@@ -289,6 +304,112 @@ public class TicketOrchestrator {
         Comment comment = CommentMapper.toComment(request, actor, ticket);
         Comment saved = commentRepository.saveAndFlush(comment);
         ticket.getComments().add(saved);
+
+        return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    @Transactional
+    public TicketResponse uploadAttachment(UUID ticketId, MultipartFile file, UUID actorId) {
+        log.debug("Attachment upload started: ticketId={}, actorId={}", ticketId, actorId);
+
+        User actor = userLookupService.requireActor(actorId);
+
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.UPLOAD_ATTACHMENT)) {
+            log.warn(
+                    "Attachment upload denied: missing permission ticket.upload_attachment; ticketId={}, actorId={}",
+                    ticketId,
+                    actorId
+            );
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.UPLOAD_ATTACHMENT);
+        }
+
+        if (file == null || file.isEmpty()) {
+            log.warn("Attachment upload rejected: empty file, ticketId={}, actorId={}", ticketId, actorId);
+            throw new IllegalArgumentException("Attachment file must not be empty");
+        }
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> {
+                    log.warn("Attachment upload failed: ticket not found, ticketId={}, actorId={}", ticketId, actorId);
+                    return new IllegalArgumentException("Ticket not found");
+                });
+
+        String originalFilename = StringUtils.hasText(file.getOriginalFilename())
+                ? file.getOriginalFilename().trim()
+                : "attachment";
+        String contentType = StringUtils.hasText(file.getContentType())
+                ? file.getContentType()
+                : "application/octet-stream";
+        String storageKey = "tickets/%s/%s-%s".formatted(ticket.getId(), UUID.randomUUID(), originalFilename);
+
+        log.info(
+                "Ticket attachment: preparing object storage upload ticketId={}, ticketNumber={}, actorId={}, fileName={}, sizeBytes={}, contentType={}, storageKey={}",
+                ticket.getId(),
+                ticket.getNumber(),
+                actor.getId(),
+                originalFilename,
+                file.getSize(),
+                contentType,
+                storageKey
+        );
+
+        StorageObject uploaded;
+        try {
+            log.debug("Ticket attachment: calling StorageService.upload (S3 when app.storage.provider=s3) storageKey={}", storageKey);
+            uploaded = storageService.upload(new StoreObjectRequest(
+                    storageKey,
+                    file.getInputStream(),
+                    file.getSize(),
+                    contentType
+            ));
+        } catch (IOException e) {
+            log.error(
+                    "Attachment upload failed while reading or uploading stream: ticketId={}, actorId={}, storageKey={}",
+                    ticketId,
+                    actorId,
+                    storageKey,
+                    e
+            );
+            throw new IllegalStateException("Failed to read attachment payload", e);
+        }
+
+        Attachment attachment = new Attachment();
+        attachment.setTicket(ticket);
+        attachment.setUploadedBy(actor);
+        attachment.setFileName(originalFilename);
+        attachment.setContentType(contentType);
+        attachment.setFileSize(file.getSize());
+        attachment.setStorageKey(uploaded.key());
+        attachment.setUrl(uploaded.url());
+        Attachment savedAttachment = attachmentRepository.saveAndFlush(attachment);
+        ticket.getAttachments().add(savedAttachment);
+
+        Comment comment = new Comment();
+        comment.setTicket(ticket);
+        comment.setUser(actor);
+        comment.setVisibility(CommentVisibility.PUBLIC);
+        comment.setMessage("Uploaded attachment: %s (%s)".formatted(savedAttachment.getFileName(), savedAttachment.getUrl()));
+        Comment savedComment = commentRepository.saveAndFlush(comment);
+        ticket.getComments().add(savedComment);
+
+        auditLogWriter.logChange(
+                ticket,
+                actor,
+                TicketAction.UPLOAD_ATTACHMENT,
+                "attachment",
+                null,
+                savedAttachment.getStorageKey()
+        );
+
+        log.info(
+                "Attachment upload completed: ticketId={}, ticketNumber={}, actorId={}, attachmentId={}, commentId={}, storageKey={}",
+                ticket.getId(),
+                ticket.getNumber(),
+                actor.getId(),
+                savedAttachment.getId(),
+                savedComment.getId(),
+                savedAttachment.getStorageKey()
+        );
 
         return TicketMapper.toDto(ticket, permissionEvaluator.includeInternalComments(actor));
     }
