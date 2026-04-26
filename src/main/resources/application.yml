@@ -33,6 +33,10 @@ spring:
               - user:email
 
 app:
+  # When true (e.g. application-dev), allow any http://localhost:* and http://127.0.0.1:* origin
+  cors:
+    allow-localhost-origins: false
+
   frontend:
     url: http://localhost:3001
 

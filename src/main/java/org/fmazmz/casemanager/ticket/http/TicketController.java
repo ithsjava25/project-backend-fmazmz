@@ -25,6 +25,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -161,6 +164,18 @@ public class TicketController implements TicketApi {
             @RequestBody @Valid TicketCommentRequest request) {
 
         TicketResponse response = ticketOrchestrator.addComment(ticketId, request, actor.getId());
+
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PostMapping(path = "{ticketId}/attachment", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public ResponseEntity<ApiResponseWrapper<TicketResponse>> uploadAttachment(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId,
+            @RequestPart("file") MultipartFile file) {
+
+        TicketResponse response = ticketOrchestrator.uploadAttachment(ticketId, file, actor.getId());
 
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }

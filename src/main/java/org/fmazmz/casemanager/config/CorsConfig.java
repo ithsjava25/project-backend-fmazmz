@@ -11,16 +11,23 @@ public class CorsConfig {
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
+    @Value("${app.cors.allow-localhost-origins:false}")
+    private boolean allowLocalhostOrigins;
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins(frontendUrl)
+                var reg = registry.addMapping("/**")
                         .allowedMethods("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
+                if (allowLocalhostOrigins) {
+                    reg.allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*");
+                } else {
+                    reg.allowedOrigins(frontendUrl);
+                }
             }
         };
     }
