@@ -10,6 +10,20 @@ type RequestConfig = {
   headers?: Record<string, string>
 }
 
+export class ApiError extends Error {
+  status: number
+  statusText: string
+  responseBody: string
+
+  constructor(status: number, statusText: string, responseBody: string) {
+    super(`[${status}] ${statusText}: ${responseBody}`)
+    this.name = "ApiError"
+    this.status = status
+    this.statusText = statusText
+    this.responseBody = responseBody
+  }
+}
+
 const withQuery = (path: string, query?: RequestConfig["query"]) => {
   if (!query) {
     return path
@@ -38,7 +52,7 @@ export const request = async <T>(path: string, config: RequestConfig = {}): Prom
 
   if (!response.ok) {
     const errorBody = await response.text()
-    throw new Error(`[${response.status}] ${response.statusText}: ${errorBody}`)
+    throw new ApiError(response.status, response.statusText, errorBody)
   }
 
   if (response.status === 204) {

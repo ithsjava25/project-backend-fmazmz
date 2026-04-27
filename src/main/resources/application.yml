@@ -38,7 +38,7 @@ app:
     allow-localhost-origins: false
 
   frontend:
-    url: http://localhost:3001
+    url: http://localhost:5173
 
   security:
     bootstrap-admin-emails: ["firasmoussa60@gmail.com"]
