@@ -153,6 +153,8 @@ export const TicketDetailsPage = () => {
 
   const ticket = ticketQuery.data
   const canEdit = user.roles.includes("AGENT") || user.roles.includes("ADMIN")
+  const isStaff = canEdit
+  const isViewer = user.roles.includes("VIEWER")
   const canComment = !user.roles.includes("VIEWER")
   const canUploadAttachment = canEdit || user.roles.includes("REPORTER")
 
@@ -495,91 +497,171 @@ export const TicketDetailsPage = () => {
         </div>
       )}
 
-      <Card className="mx-auto w-full max-w-4xl">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-center">Comments timeline</CardTitle>
+          <CardTitle>Comments timeline</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              type="button"
-              variant={activityTab === "comments" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActivityTab("comments")}
-            >
-              Comments
-            </Button>
-            <Button
-              type="button"
-              variant={activityTab === "resolution" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActivityTab("resolution")}
-            >
-              Resolution
-            </Button>
-          </div>
+          {isStaff && (
+            <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-1">
+              <Button
+                type="button"
+                variant={activityTab === "comments" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 rounded-md px-3"
+                onClick={() => setActivityTab("comments")}
+              >
+                Comments
+              </Button>
+              <Button
+                type="button"
+                variant={activityTab === "resolution" ? "default" : "ghost"}
+                size="sm"
+                className="h-8 rounded-md px-3"
+                onClick={() => setActivityTab("resolution")}
+              >
+                Resolution
+              </Button>
+            </div>
+          )}
 
-          {activityTab === "comments" ? (
-            <>
-              <div className="mx-auto w-full max-w-4xl space-y-2">
-                <div className="mx-auto grid w-full max-w-4xl gap-2 sm:grid-cols-[180px_1fr_auto]">
-                  <select
-                    className={`h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ${
-                      (showWipInternalCommentError && visibility !== "INTERNAL") ||
-                      (showPublicCommentError && visibility !== "PUBLIC")
-                        ? "border-red-500"
-                        : "border-input"
-                    }`}
-                    value={visibility}
-                    onChange={(event) => setVisibility(event.target.value as CommentVisibility)}
-                    disabled={!canComment}
-                  >
-                    <option value="PUBLIC">PUBLIC</option>
-                    <option value="INTERNAL">WORK NOTE</option>
-                  </select>
-                  <Textarea
-                    value={comment}
-                    onChange={(event) => setComment(event.target.value)}
-                    rows={2}
-                    disabled={!canComment}
-                    className={
-                      (showWipInternalCommentError || showPublicCommentError) && !comment.trim()
-                        ? "border-red-500 ring-1 ring-red-500/30"
-                        : ""
-                    }
-                  />
-                  <Button onClick={() => commentMutation.mutate()} disabled={!canComment || commentMutation.isPending || !comment}>
-                    Add
-                  </Button>
+          {isStaff ? (
+            activityTab === "comments" ? (
+              <>
+                <div className="w-full space-y-2">
+                  <div className="grid w-full gap-2 sm:grid-cols-[260px_1fr_auto]">
+                    <div className="space-y-1">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Visibility</p>
+                      <div
+                        className={`inline-flex w-full items-center rounded-lg border bg-background p-1 ${
+                          (showWipInternalCommentError && visibility !== "INTERNAL") ||
+                          (showPublicCommentError && visibility !== "PUBLIC")
+                            ? "border-red-500"
+                            : "border-input"
+                        }`}
+                      >
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={visibility === "PUBLIC" ? "default" : "ghost"}
+                          className="h-8 flex-1 rounded-md"
+                          onClick={() => setVisibility("PUBLIC")}
+                          disabled={!canComment}
+                        >
+                          Public
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={visibility === "INTERNAL" ? "default" : "ghost"}
+                          className="h-8 flex-1 rounded-md"
+                          onClick={() => setVisibility("INTERNAL")}
+                          disabled={!canComment}
+                        >
+                          Work Note
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      value={comment}
+                      onChange={(event) => setComment(event.target.value)}
+                      rows={2}
+                      disabled={!canComment}
+                      className={
+                        (showWipInternalCommentError || showPublicCommentError) && !comment.trim()
+                          ? "border-red-500 ring-1 ring-red-500/30"
+                          : visibility === "INTERNAL"
+                            ? "border-yellow-500/70 ring-1 ring-yellow-500/30"
+                            : ""
+                      }
+                    />
+                    <Button onClick={() => commentMutation.mutate()} disabled={!canComment || commentMutation.isPending || !comment}>
+                      Add
+                    </Button>
+                  </div>
+                  {!canComment && (
+                    <p className="mx-auto w-full max-w-4xl text-xs text-muted-foreground">
+                      Viewer mode is read-only. Commenting is disabled.
+                    </p>
+                  )}
+                  {showWipInternalCommentError && (
+                    <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
+                      * For assignment/status changes, set comment visibility to WORK NOTE and enter the internal comment here.
+                    </p>
+                  )}
+                  {showPublicCommentError && (
+                    <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
+                      * For AWAITING_USER_INFO, set visibility to PUBLIC and enter a requester-facing update.
+                    </p>
+                  )}
+                  {[...ticket.comments]
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .map((item) => (
+                    <div
+                      key={item.id}
+                      className={`rounded-md border p-3 ${
+                        item.visibility === "INTERNAL" ? "border-yellow-500/60 bg-yellow-500/5" : "border-border"
+                      }`}
+                    >
+                      <div className="mb-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span className={item.visibility === "INTERNAL" ? "font-medium text-yellow-400" : ""}>
+                          {item.visibility === "INTERNAL" ? "WORK NOTE" : item.visibility}
+                        </span>{" "}
+                        <span className="truncate">
+                          {commentAuthorEmailById.get(item.authorId) ?? "unknown user"} ·{" "}
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-sm">{item.message}</p>
+                    </div>
+                  ))}
                 </div>
-                {!canComment && (
-                  <p className="mx-auto w-full max-w-4xl text-xs text-muted-foreground">
+              </>
+            ) : (
+              <div className="mx-auto w-full max-w-4xl space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Add resolution details for the final fix. A resolution note is required before moving a ticket to
+                  RESOLVED.
+                </p>
+                <Textarea
+                  value={resolutionNote}
+                  onChange={(event) => setResolutionNote(event.target.value)}
+                  placeholder="Describe root cause, fix applied, and verification steps."
+                  className={showResolutionError ? "border-red-500" : ""}
+                  rows={5}
+                />
+                {showResolutionError && <p className="text-xs text-red-400">* Resolution note is required.</p>}
+              </div>
+            )
+          ) : (
+            <>
+              <div className="w-full space-y-2">
+                {!isViewer && (
+                  <div className="grid w-full gap-2 sm:grid-cols-[1fr_auto]">
+                    <Textarea
+                      value={comment}
+                      onChange={(event) => setComment(event.target.value)}
+                      rows={2}
+                      disabled={!canComment}
+                      placeholder="Add a public update or follow-up..."
+                    />
+                    <Button onClick={() => commentMutation.mutate()} disabled={!canComment || commentMutation.isPending || !comment}>
+                      Add
+                    </Button>
+                  </div>
+                )}
+                {isViewer && (
+                  <p className="text-xs text-muted-foreground">
                     Viewer mode is read-only. Commenting is disabled.
                   </p>
                 )}
-                {showWipInternalCommentError && (
-                  <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
-                    * For assignment/status changes, set comment visibility to WORK NOTE and enter the internal comment here.
-                  </p>
-                )}
-                {showPublicCommentError && (
-                  <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
-                    * For AWAITING_USER_INFO, set visibility to PUBLIC and enter a requester-facing update.
-                  </p>
-                )}
                 {[...ticket.comments]
+                  .filter((item) => item.visibility === "PUBLIC")
                   .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
                   .map((item) => (
-                  <div
-                    key={item.id}
-                    className={`rounded-md border p-3 ${
-                      item.visibility === "INTERNAL" ? "border-yellow-500/60 bg-yellow-500/5" : "border-border"
-                    }`}
-                  >
+                  <div key={item.id} className="rounded-md border border-border p-3">
                     <div className="mb-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <span className={item.visibility === "INTERNAL" ? "font-medium text-yellow-400" : ""}>
-                        {item.visibility === "INTERNAL" ? "WORK NOTE" : item.visibility}
-                      </span>{" "}
+                      <span>PUBLIC</span>
                       <span className="truncate">
                         {commentAuthorEmailById.get(item.authorId) ?? "unknown user"} ·{" "}
                         {new Date(item.createdAt).toLocaleString()}
@@ -588,23 +670,11 @@ export const TicketDetailsPage = () => {
                     <p className="text-sm">{item.message}</p>
                   </div>
                 ))}
+                {[...ticket.comments].filter((item) => item.visibility === "PUBLIC").length === 0 && (
+                  <p className="text-sm text-muted-foreground">No public comments yet.</p>
+                )}
               </div>
             </>
-          ) : (
-            <div className="mx-auto w-full max-w-4xl space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Add resolution details for the final fix. A resolution note is required before moving a ticket to
-                RESOLVED.
-              </p>
-              <Textarea
-                value={resolutionNote}
-                onChange={(event) => setResolutionNote(event.target.value)}
-                placeholder="Describe root cause, fix applied, and verification steps."
-                className={showResolutionError ? "border-red-500" : ""}
-                rows={5}
-              />
-              {showResolutionError && <p className="text-xs text-red-400">* Resolution note is required.</p>}
-            </div>
           )}
         </CardContent>
       </Card>

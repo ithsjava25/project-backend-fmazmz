@@ -51,7 +51,7 @@ export const TicketsPage = () => {
         title="Incidents"
         description="Create, review, and update incidents."
       />
-      <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
+      <section>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Incident queue</CardTitle>
@@ -145,21 +145,6 @@ export const TicketsPage = () => {
                 )}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Incident workspace</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <p>
-              Open an incident to work in the full ticket view with operational fields, editable sections by
-              access level, and a comments timeline for agent collaboration.
-            </p>
-            <Link to="/app/tickets/new" className={buttonVariants({ variant: "outline", className: "w-full" })}>
-              Open new incident workspace
-            </Link>
           </CardContent>
         </Card>
       </section>
