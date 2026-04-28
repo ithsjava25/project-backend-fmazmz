@@ -50,7 +50,7 @@ export type TicketAction =
   | "LOG_READ"
   | "MANAGE_ASSIGNMENT_GROUPS"
 
-export type RoleName = "ADMIN" | "AGENT" | "REPORTER" | "VIEWER"
+export type RoleName = "ADMIN" | "AGENT" | "SUPER_AGENT" | "REPORTER" | "VIEWER"
 
 export interface TicketCommentResponse {
   id: UUID

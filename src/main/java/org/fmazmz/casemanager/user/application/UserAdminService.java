@@ -74,7 +74,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         var targetUserId = target.getId();
 
-        boolean wasAdmin = userRoleMappingRepository.existsByUser_IdAndRole_Name(targetUserId, RoleName.ADMIN.name());
+        boolean wasAdmin = userRoleMappingRepository.existsByUserIdAndRoleName(targetUserId, RoleName.ADMIN.name());
         boolean newHasAdmin = newRoles.contains(RoleName.ADMIN);
         if (wasAdmin && !newHasAdmin) {
             long adminUsers = userRoleMappingRepository.countDistinctUsersWithRoleName(RoleName.ADMIN.name());

@@ -126,11 +126,14 @@ public class TicketOrchestrator {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        requireAgentScopeForTicketUpdate(actor, ticket);
 
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus = request.status();
+
         UUID currentGroupId = ticket.getAssignmentGroup() != null ? ticket.getAssignmentGroup().getId() : null;
         UUID currentAssigneeId = ticket.getAssignee() != null ? ticket.getAssignee().getId() : null;
+
         boolean assignmentGroupChanged = !Objects.equals(currentGroupId, request.assignmentGroup());
         boolean assigneeChanged = !Objects.equals(currentAssigneeId, request.assignee());
 
@@ -275,6 +278,7 @@ public class TicketOrchestrator {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        requireAgentScopeForTicketUpdate(actor, ticket);
 
         Priority fromPriority = ticket.getPriority();
         Priority toPriority = request.priority();
@@ -319,6 +323,7 @@ public class TicketOrchestrator {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        requireAgentScopeForTicketUpdate(actor, ticket);
 
         boolean changed = false;
 
@@ -354,6 +359,25 @@ public class TicketOrchestrator {
 
         Ticket saved = ticketRepository.saveAndFlush(ticket);
         return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
+    }
+
+    private void requireAgentScopeForTicketUpdate(User actor, Ticket ticket) {
+        if (permissionEvaluator.hasRole(actor, "ADMIN") || permissionEvaluator.hasRole(actor, "SUPER_AGENT")) {
+            return;
+        }
+        if (!permissionEvaluator.hasRole(actor, "AGENT")) {
+            return;
+        }
+
+        boolean isAssignee = ticket.getAssignee() != null && actor.getId().equals(ticket.getAssignee().getId());
+        boolean isInAssignmentGroup = ticket.getAssignmentGroup() != null
+                && assignmentGroupRepository.isUserMember(ticket.getAssignmentGroup().getId(), actor.getId());
+
+        if (!isAssignee && !isInAssignmentGroup) {
+            throw new AccessDeniedException(
+                    "Agent can only update incidents assigned to them or to one of their assignment groups"
+            );
+        }
     }
 
     @Transactional

@@ -102,7 +102,7 @@ function App() {
   const canUseRolePreview = user.roles.includes("ADMIN")
   const effectiveUser = previewRole ? { ...user, roles: [previewRole] } : user
   const isAdmin = effectiveUser.roles.includes("ADMIN")
-  const isAgent = effectiveUser.roles.includes("AGENT")
+  const isAgent = effectiveUser.roles.includes("AGENT") || effectiveUser.roles.includes("SUPER_AGENT")
   const isViewer = effectiveUser.roles.includes("VIEWER")
   const isStaff = isAdmin || isAgent
   const defaultAppPath = isStaff ? "/app/dashboard" : "/app/my-reported-tickets"

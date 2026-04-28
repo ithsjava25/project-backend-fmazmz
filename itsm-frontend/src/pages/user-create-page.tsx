@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { RoleName } from "@/types/api"
 
-const ROLE_OPTIONS: RoleName[] = ["ADMIN", "AGENT", "REPORTER", "VIEWER"]
+const ROLE_OPTIONS: RoleName[] = ["ADMIN", "AGENT", "SUPER_AGENT", "REPORTER", "VIEWER"]
 
 export const UserCreatePage = () => {
   const navigate = useNavigate()

@@ -23,7 +23,7 @@ export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRol
   const searchContainerRef = useRef<HTMLDivElement | null>(null)
   const normalizedSearchText = debouncedSearchText.trim()
   const isAdmin = user.roles.includes("ADMIN")
-  const isAgent = user.roles.includes("AGENT")
+  const isAgent = user.roles.includes("AGENT") || user.roles.includes("SUPER_AGENT")
   const isViewer = user.roles.includes("VIEWER")
   const isStaff = isAdmin || isAgent
   const showBackofficeSearch = isStaff
@@ -34,9 +34,9 @@ export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRol
           items: [{ to: "/app/dashboard", label: "Dashboard", icon: Gauge }],
         },
         {
-          label: "Incident Operations",
+          label: "Incident",
           items: [
-            { to: "/app/tickets", label: "Incidents", icon: ClipboardList },
+            { to: "/app/tickets", label: "All", icon: ClipboardList },
             { to: "/app/tickets/assigned-to-me", label: "Assigned To Me", icon: UserCheck },
             { to: "/app/tickets/assigned-to-my-groups", label: "Assigned To My Groups", icon: UsersRound },
           ],
@@ -269,6 +269,7 @@ export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRol
                     <Button variant={previewRole === null ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole(null)}>Real</Button>
                     <Button variant={previewRole === "ADMIN" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("ADMIN")}>Admin</Button>
                     <Button variant={previewRole === "AGENT" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("AGENT")}>Agent</Button>
+                    <Button variant={previewRole === "SUPER_AGENT" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("SUPER_AGENT")}>Super Agent</Button>
                     <Button variant={previewRole === "REPORTER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("REPORTER")}>Reporter</Button>
                     <Button variant={previewRole === "VIEWER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("VIEWER")}>Viewer</Button>
                   </div>

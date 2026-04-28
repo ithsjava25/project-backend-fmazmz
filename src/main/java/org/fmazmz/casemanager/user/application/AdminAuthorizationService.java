@@ -19,7 +19,7 @@ public class AdminAuthorizationService {
         if (actor == null || actor.getId() == null) {
             throw new AccessDeniedException("Administrator role required");
         }
-        if (!userRoleMappingRepository.existsByUser_IdAndRole_Name(actor.getId(), RoleName.ADMIN.name())) {
+        if (!userRoleMappingRepository.existsByUserIdAndRoleName(actor.getId(), RoleName.ADMIN.name())) {
             throw new AccessDeniedException("Administrator role required");
         }
     }

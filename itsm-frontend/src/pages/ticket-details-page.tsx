@@ -152,7 +152,7 @@ export const TicketDetailsPage = () => {
   })
 
   const ticket = ticketQuery.data
-  const canEdit = user.roles.includes("AGENT") || user.roles.includes("ADMIN")
+  const canEdit = user.roles.includes("AGENT") || user.roles.includes("SUPER_AGENT") || user.roles.includes("ADMIN")
   const isStaff = canEdit
   const isViewer = user.roles.includes("VIEWER")
   const canComment = !user.roles.includes("VIEWER")

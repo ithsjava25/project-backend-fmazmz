@@ -14,7 +14,7 @@ public interface UserRoleMappingRepository extends JpaRepository<UserRoleMapping
 
     void deleteByUser(User user);
 
-    boolean existsByUser_IdAndRole_Name(UUID userId, String roleName);
+    boolean existsByUserIdAndRoleName(UUID userId, String roleName);
 
     @Query("select urm.role.name from UserRoleMapping urm where urm.user.id = :userId")
     List<String> findRoleNamesByUserId(@Param("userId") UUID userId);

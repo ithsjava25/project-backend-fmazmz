@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button, buttonVariants } from "@/components/ui/button"
 import type { RoleName } from "@/types/api"
 
-const ROLE_OPTIONS: RoleName[] = ["ADMIN", "AGENT", "REPORTER", "VIEWER"]
+const ROLE_OPTIONS: RoleName[] = ["ADMIN", "AGENT", "SUPER_AGENT", "REPORTER", "VIEWER"]
 
 export const UserDetailsPage = () => {
   const { userId = "" } = useParams()
