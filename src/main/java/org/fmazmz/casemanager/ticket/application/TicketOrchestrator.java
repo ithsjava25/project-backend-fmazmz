@@ -39,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -128,6 +129,76 @@ public class TicketOrchestrator {
 
         TicketStatus fromStatus = ticket.getStatus();
         TicketStatus toStatus = request.status();
+        UUID currentGroupId = ticket.getAssignmentGroup() != null ? ticket.getAssignmentGroup().getId() : null;
+        UUID currentAssigneeId = ticket.getAssignee() != null ? ticket.getAssignee().getId() : null;
+        boolean assignmentGroupChanged = !Objects.equals(currentGroupId, request.assignmentGroup());
+        boolean assigneeChanged = !Objects.equals(currentAssigneeId, request.assignee());
+
+        if (fromStatus == toStatus && (assignmentGroupChanged || assigneeChanged)) {
+            if (!permissionEvaluator.hasPermission(actor, TicketAction.ASSIGN)) {
+                throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.ASSIGN);
+            }
+            if (request.internalComment() == null || request.internalComment().isBlank()) {
+                throw new IllegalArgumentException("Assignment updates require an internal comment");
+            }
+
+            if (request.assignee() != null) {
+                UUID targetGroupId = request.assignmentGroup() != null ? request.assignmentGroup() : currentGroupId;
+                if (targetGroupId == null) {
+                    throw new IllegalArgumentException("Assignee requires an assignment group");
+                }
+                TicketWorkflowValidator.ResolvedAssignment resolved = workflowValidator.resolveAssignmentOrThrow(
+                        new ChangeTicketStatusRequest(
+                                request.status(),
+                                targetGroupId,
+                                request.assignee(),
+                                null,
+                                request.internalComment(),
+                                null
+                        )
+                );
+                ticket.setAssignmentGroup(resolved.group());
+                ticket.setAssignee(resolved.assignee());
+            } else if (request.assignmentGroup() != null) {
+                AssignmentGroup group = assignmentGroupRepository.findById(request.assignmentGroup())
+                        .orElseThrow(() -> new IllegalArgumentException("Assignment group not found"));
+                ticket.setAssignmentGroup(group);
+                ticket.setAssignee(null);
+            } else {
+                ticket.setAssignmentGroup(null);
+                ticket.setAssignee(null);
+            }
+
+            Comment internalComment = new Comment();
+            internalComment.setTicket(ticket);
+            internalComment.setUser(actor);
+            internalComment.setVisibility(CommentVisibility.INTERNAL);
+            internalComment.setMessage(request.internalComment().trim());
+            commentRepository.save(internalComment);
+
+            Ticket saved = ticketRepository.saveAndFlush(ticket);
+            if (assignmentGroupChanged) {
+                auditLogWriter.logChange(
+                        saved,
+                        actor,
+                        TicketAction.ASSIGN,
+                        "assignmentGroup",
+                        currentGroupId != null ? currentGroupId.toString() : null,
+                        request.assignmentGroup() != null ? request.assignmentGroup().toString() : null
+                );
+            }
+            if (assigneeChanged) {
+                auditLogWriter.logChange(
+                        saved,
+                        actor,
+                        TicketAction.ASSIGN,
+                        "assignee",
+                        currentAssigneeId != null ? currentAssigneeId.toString() : null,
+                        request.assignee() != null ? request.assignee().toString() : null
+                );
+            }
+            return TicketMapper.toDto(saved, permissionEvaluator.includeInternalComments(actor));
+        }
 
         if (fromStatus == TicketStatus.CLOSED) {
             throw new IllegalArgumentException(

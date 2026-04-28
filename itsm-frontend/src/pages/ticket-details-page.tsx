@@ -95,6 +95,11 @@ export const TicketDetailsPage = () => {
         selectedAssignmentGroup !== (currentTicket.assignmentGroupId ?? "") ||
         selectedAssignee !== (currentTicket.assigneeId ?? "") ||
         (requiresResolutionNote && resolutionNote.trim() !== (currentTicket.resolutionNotes ?? ""))
+      const assignmentRoutingChanged =
+        selectedAssignmentGroup !== (currentTicket.assignmentGroupId ?? "") ||
+        selectedAssignee !== (currentTicket.assigneeId ?? "")
+      const requiresInternalWorkNote = selectedStatus === "WORK_IN_PROGRESS" || assignmentRoutingChanged
+      const requiresPublicUpdate = selectedStatus === "AWAITING_USER_INFO"
 
       if (!titleChanged && !descriptionChanged && !priorityChanged && !transitionChanged) {
         return false
@@ -119,8 +124,16 @@ export const TicketDetailsPage = () => {
           status: selectedStatus,
           assignmentGroup: selectedAssignmentGroup || undefined,
           assignee: selectedAssignee || undefined,
-          internalComment: requiresAssignment ? comment.trim() : undefined,
+          publicComment: requiresPublicUpdate ? comment.trim() : undefined,
+          internalComment: requiresInternalWorkNote ? comment.trim() : undefined,
           resolutionNotes: requiresResolutionNote ? resolutionNote.trim() : undefined,
+        })
+      }
+
+      if (transitionChanged && comment.trim()) {
+        await caseManagerApi.tickets.comment(ticketId, {
+          visibility,
+          comment: comment.trim(),
         })
       }
 
@@ -131,10 +144,7 @@ export const TicketDetailsPage = () => {
         toast.message("No changes to save")
         return
       }
-      await caseManagerApi.tickets.comment(ticketId, {
-        visibility: "INTERNAL",
-        comment: `WORK NOTE: Incident state saved (${selectedStatus}, ${selectedPriority}).`,
-      })
+      setComment("")
       toast.success("Incident saved")
       void queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] })
     },
@@ -168,19 +178,21 @@ export const TicketDetailsPage = () => {
     }
   }, [selectedAssignmentGroup, selectedAssignee, selectedGroupMemberIds])
 
-  if (!ticket) {
-    return <div className="text-sm text-muted-foreground">Loading ticket details...</div>
-  }
-
   const requiresAssignment = selectedStatus === "WORK_IN_PROGRESS"
+  const requiresPublicComment = selectedStatus === "AWAITING_USER_INFO"
   const requiresResolutionNote = selectedStatus === "RESOLVED"
+  const assignmentGroupChanged = selectedAssignmentGroup !== (ticket?.assignmentGroupId ?? "")
+  const assigneeChanged = selectedAssignee !== (ticket?.assigneeId ?? "")
+  const requiresAssignmentWorkNote = requiresAssignment || assignmentGroupChanged || assigneeChanged
   const hasAssignmentGroup = Boolean(selectedAssignmentGroup)
   const hasAssignee = Boolean(selectedAssignee.trim())
   const hasWipInternalComment = visibility === "INTERNAL" && Boolean(comment.trim())
+  const hasRequiredPublicComment = visibility === "PUBLIC" && Boolean(comment.trim())
   const hasResolutionNote = Boolean(resolutionNote.trim())
   const showAssignmentGroupError = requiresAssignment && !hasAssignmentGroup && transitionTouched
   const showAssigneeError = requiresAssignment && !hasAssignee && transitionTouched
-  const showWipInternalCommentError = requiresAssignment && !hasWipInternalComment && transitionTouched
+  const showWipInternalCommentError = requiresAssignmentWorkNote && !hasWipInternalComment && transitionTouched
+  const showPublicCommentError = requiresPublicComment && !hasRequiredPublicComment && transitionTouched
   const showResolutionError = requiresResolutionNote && !hasResolutionNote && transitionTouched
   const commentAuthorEmailById = new Map((commentAuthorsQuery.data ?? []).map((user) => [user.id, user.email]))
   const attachmentsQuery = useQuery({
@@ -204,6 +216,20 @@ export const TicketDetailsPage = () => {
     onError: (error: Error) => toast.error(error.message),
   })
 
+  useEffect(() => {
+    if (selectedStatus === "AWAITING_USER_INFO") {
+      setVisibility("PUBLIC")
+      return
+    }
+    if (requiresAssignmentWorkNote) {
+      setVisibility("INTERNAL")
+    }
+  }, [selectedStatus, requiresAssignmentWorkNote])
+
+  if (!ticket) {
+    return <div className="text-sm text-muted-foreground">Loading ticket details...</div>
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -224,9 +250,14 @@ export const TicketDetailsPage = () => {
                   setTransitionTouched(true)
                   if (
                     (requiresAssignment && (!hasAssignmentGroup || !hasAssignee || !hasWipInternalComment)) ||
+                    (requiresAssignmentWorkNote && !hasWipInternalComment) ||
+                    (requiresPublicComment && !hasRequiredPublicComment) ||
                     (requiresResolutionNote && !hasResolutionNote)
                   ) {
-                    if (requiresAssignment && !hasWipInternalComment) {
+                    if (
+                      (requiresAssignmentWorkNote && !hasWipInternalComment) ||
+                      (requiresPublicComment && !hasRequiredPublicComment)
+                    ) {
                       setActivityTab("comments")
                     }
                     if (requiresResolutionNote && !hasResolutionNote) {
@@ -280,6 +311,23 @@ export const TicketDetailsPage = () => {
                 </select>
               </div>
               <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+                <select
+                  className={`h-10 w-full max-w-sm rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
+                    showResolutionError ? "border-red-500" : "border-input"
+                  }`}
+                  value={selectedStatus}
+                  disabled={!canEdit || saveMutation.isPending}
+                  onChange={(event) => setSelectedStatus(event.target.value as TicketStatus)}
+                >
+                  {["OPEN", "ASSIGNED", "WORK_IN_PROGRESS", "AWAITING_USER_INFO", "RESOLVED", "CLOSED"].map((status) => (
+                    <option key={status} value={status}>
+                      {formatEnumLabel(status)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   Assignment group {requiresAssignment && <span className="text-red-400">*</span>}
                 </p>
@@ -296,23 +344,6 @@ export const TicketDetailsPage = () => {
                   {(groupsQuery.data ?? []).map((group) => (
                     <option key={group.id} value={group.id}>
                       {group.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
-                <select
-                  className={`h-10 w-full max-w-sm rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
-                    showResolutionError ? "border-red-500" : "border-input"
-                  }`}
-                  value={selectedStatus}
-                  disabled={!canEdit || saveMutation.isPending}
-                  onChange={(event) => setSelectedStatus(event.target.value as TicketStatus)}
-                >
-                  {["OPEN", "ASSIGNED", "WORK_IN_PROGRESS", "AWAITING_USER_INFO", "RESOLVED", "CLOSED"].map((status) => (
-                    <option key={status} value={status}>
-                      {formatEnumLabel(status)}
                     </option>
                   ))}
                 </select>
@@ -351,9 +382,19 @@ export const TicketDetailsPage = () => {
                   {showAssigneeError ? "* Assignee is required for WORK_IN_PROGRESS." : ""}
                 </p>
               )}
+              {(assignmentGroupChanged || assigneeChanged) && (
+                <p className="text-xs text-muted-foreground">
+                  Transition summary: status stays {formatEnumLabel(selectedStatus)}, assignment routing updated.
+                </p>
+              )}
               {showWipInternalCommentError && (
                 <p className="text-xs text-red-400">
-                  * WORK_IN_PROGRESS requires a WORK NOTE in the main comments section (set visibility to WORK NOTE).
+                  * Assignment/status updates require a WORK NOTE in the main comments section (set visibility to WORK NOTE).
+                </p>
+              )}
+              {showPublicCommentError && (
+                <p className="text-xs text-red-400">
+                  * AWAITING_USER_INFO requires a PUBLIC comment in the main comments section.
                 </p>
               )}
               {showResolutionError && (
@@ -473,7 +514,10 @@ export const TicketDetailsPage = () => {
                 <div className="mx-auto grid w-full max-w-4xl gap-2 sm:grid-cols-[180px_1fr_auto]">
                   <select
                     className={`h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ${
-                      showWipInternalCommentError && visibility !== "INTERNAL" ? "border-red-500" : "border-input"
+                      (showWipInternalCommentError && visibility !== "INTERNAL") ||
+                      (showPublicCommentError && visibility !== "PUBLIC")
+                        ? "border-red-500"
+                        : "border-input"
                     }`}
                     value={visibility}
                     onChange={(event) => setVisibility(event.target.value as CommentVisibility)}
@@ -485,7 +529,11 @@ export const TicketDetailsPage = () => {
                     value={comment}
                     onChange={(event) => setComment(event.target.value)}
                     rows={2}
-                    className={showWipInternalCommentError && !comment.trim() ? "border-red-500 ring-1 ring-red-500/30" : ""}
+                    className={
+                      (showWipInternalCommentError || showPublicCommentError) && !comment.trim()
+                        ? "border-red-500 ring-1 ring-red-500/30"
+                        : ""
+                    }
                   />
                   <Button onClick={() => commentMutation.mutate()} disabled={commentMutation.isPending || !comment}>
                     Add
@@ -493,7 +541,12 @@ export const TicketDetailsPage = () => {
                 </div>
                 {showWipInternalCommentError && (
                   <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
-                    * For WORK_IN_PROGRESS, set comment visibility to WORK NOTE and enter the internal comment here.
+                    * For assignment/status changes, set comment visibility to WORK NOTE and enter the internal comment here.
+                  </p>
+                )}
+                {showPublicCommentError && (
+                  <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
+                    * For AWAITING_USER_INFO, set visibility to PUBLIC and enter a requester-facing update.
                   </p>
                 )}
                 {[...ticket.comments]

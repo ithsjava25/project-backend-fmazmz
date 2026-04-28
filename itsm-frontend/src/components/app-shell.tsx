@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from "react-router-dom"
-import { Bell, ClipboardList, Gauge, LogOut, Search, Shield, Users, UserCircle, Workflow } from "lucide-react"
+import { Bell, ClipboardList, Gauge, LogOut, Search, Shield, UserCheck, Users, UserCircle, UsersRound, Workflow } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,14 +9,34 @@ type AppShellProps = {
   user: UserResponse
 }
 
-const navItems = [
-  { to: "/app/dashboard", label: "Dashboard", icon: Gauge },
-  { to: "/app/tickets", label: "Tickets", icon: ClipboardList },
-  { to: "/app/assignment-groups", label: "Assignment Groups", icon: Workflow },
-  { to: "/app/users", label: "Users & Roles", icon: Users },
-  { to: "/app/audit", label: "Audit Logs", icon: Shield },
-  { to: "/app/notifications", label: "Notifications", icon: Bell },
-  { to: "/app/settings", label: "Settings", icon: UserCircle },
+const navSections = [
+  {
+    label: "Overview",
+    items: [{ to: "/app/dashboard", label: "Dashboard", icon: Gauge }],
+  },
+  {
+    label: "Ticket Operations",
+    items: [
+      { to: "/app/tickets", label: "Tickets", icon: ClipboardList },
+      { to: "/app/tickets/assigned-to-me", label: "Assigned To Me", icon: UserCheck },
+      { to: "/app/tickets/assigned-to-my-groups", label: "Assigned To My Groups", icon: UsersRound },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { to: "/app/assignment-groups", label: "Assignment Groups", icon: Workflow },
+      { to: "/app/users", label: "Users & Roles", icon: Users },
+      { to: "/app/audit", label: "Audit Logs", icon: Shield },
+    ],
+  },
+  {
+    label: "Personal",
+    items: [
+      { to: "/app/notifications", label: "Notifications", icon: Bell },
+      { to: "/app/settings", label: "Settings", icon: UserCircle },
+    ],
+  },
 ]
 
 export const AppShell = ({ user }: AppShellProps) => {
@@ -28,25 +48,32 @@ export const AppShell = ({ user }: AppShellProps) => {
             <p className="text-lg font-semibold tracking-tight">Case Manager</p>
             <p className="text-xs text-muted-foreground">IT service management</p>
           </Link>
-          <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Workspace
-          </div>
-          <nav className="space-y-1">
-            {navItems.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`
-                }
-              >
-                <Icon className="size-4 transition-transform group-hover:scale-105" />
-                {label}
-              </NavLink>
+          <nav className="space-y-4">
+            {navSections.map((section, index) => (
+              <div key={section.label}>
+                {index > 0 && <div className="mb-3 border-t border-border/70" />}
+                <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  {section.label}
+                </div>
+                <div className="space-y-1">
+                  {section.items.map(({ to, label, icon: Icon }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`
+                      }
+                    >
+                      <Icon className="size-4 transition-transform group-hover:scale-105" />
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
             ))}
           </nav>
           <div className="mt-8 rounded-2xl border border-border/60 bg-background/70 p-4">

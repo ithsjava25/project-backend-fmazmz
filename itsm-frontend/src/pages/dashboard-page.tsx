@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { AlertTriangle, CheckCircle2, Clock3, Layers3 } from "lucide-react"
+import { Link } from "react-router-dom"
 import { caseManagerApi } from "@/api/case-manager-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
@@ -66,7 +67,11 @@ export const DashboardPage = () => {
           {(ticketsPage?.items ?? []).slice(0, 5).map((ticket) => (
             <div key={ticket.id} className="flex items-center justify-between rounded-xl border border-border/60 bg-background/70 p-3 text-sm">
               <div>
-                <p className="font-medium">{ticket.number}</p>
+                <p className="font-medium">
+                  <Link to={`/app/tickets/${ticket.id}`} className="hover:underline">
+                    {ticket.number}
+                  </Link>
+                </p>
                 <p className="text-muted-foreground">{ticket.title}</p>
               </div>
               <span className="text-xs text-muted-foreground">{formatEnumLabel(ticket.status)}</span>

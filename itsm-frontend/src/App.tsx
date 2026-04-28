@@ -9,6 +9,8 @@ import { caseManagerApi } from "@/api/case-manager-client"
 import { env } from "@/config/env"
 import { AuthProvider } from "@/lib/auth-context"
 import { AssignmentGroupsPage } from "@/pages/assignment-groups-page"
+import { AssignedToMePage } from "@/pages/assigned-to-me-page"
+import { AssignedToMyGroupsPage } from "@/pages/assigned-to-my-groups-page"
 import { AuditPage } from "@/pages/audit-page"
 import { DashboardPage } from "@/pages/dashboard-page"
 import { NotFoundPage } from "@/pages/not-found-page"
@@ -110,6 +112,8 @@ function App() {
         <Route path="/app" element={<AppShell user={user} />}>
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="tickets" element={<TicketsPage />} />
+          <Route path="tickets/assigned-to-me" element={<AssignedToMePage />} />
+          <Route path="tickets/assigned-to-my-groups" element={<AssignedToMyGroupsPage />} />
           <Route path="tickets/new" element={<TicketCreatePage />} />
           <Route path="tickets/:ticketId" element={<TicketDetailsPage />} />
           <Route path="assignment-groups" element={<AssignmentGroupsPage />} />
