@@ -126,6 +126,7 @@ public class TicketOrchestrator {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
         requireAgentScopeForTicketUpdate(actor, ticket);
 
         TicketStatus fromStatus = ticket.getStatus();
@@ -278,6 +279,7 @@ public class TicketOrchestrator {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+
         requireAgentScopeForTicketUpdate(actor, ticket);
 
         Priority fromPriority = ticket.getPriority();
@@ -362,10 +364,11 @@ public class TicketOrchestrator {
     }
 
     private void requireAgentScopeForTicketUpdate(User actor, Ticket ticket) {
-        if (permissionEvaluator.hasRole(actor, "ADMIN") || permissionEvaluator.hasRole(actor, "SUPER_AGENT")) {
+        if (!permissionEvaluator.hasRole(actor, "AGENT")) {
             return;
         }
-        if (!permissionEvaluator.hasRole(actor, "AGENT")) {
+        
+        if (permissionEvaluator.hasRole(actor, "ADMIN") || permissionEvaluator.hasRole(actor, "SUPER_AGENT")) {
             return;
         }
 

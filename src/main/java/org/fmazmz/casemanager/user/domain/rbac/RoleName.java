@@ -14,7 +14,6 @@ public enum RoleName {
             TicketAction.RESOLVE,
             TicketAction.ASSIGN,
             TicketAction.CHANGE_STATUS,
-            TicketAction.CHANGE_PRIORITY,
             TicketAction.COMMENT_PUBLIC,
             TicketAction.COMMENT_INTERNAL,
             TicketAction.UPLOAD_ATTACHMENT,

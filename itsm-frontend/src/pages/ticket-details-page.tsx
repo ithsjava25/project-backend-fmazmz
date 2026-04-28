@@ -153,6 +153,7 @@ export const TicketDetailsPage = () => {
 
   const ticket = ticketQuery.data
   const canEdit = user.roles.includes("AGENT") || user.roles.includes("SUPER_AGENT") || user.roles.includes("ADMIN")
+  const canChangePriority = user.roles.includes("SUPER_AGENT")
   const isStaff = canEdit
   const isViewer = user.roles.includes("VIEWER")
   const canComment = !user.roles.includes("VIEWER")
@@ -312,7 +313,7 @@ export const TicketDetailsPage = () => {
                 <select
                   className="h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
                   value={selectedPriority}
-                  disabled={!canEdit || saveMutation.isPending}
+                  disabled={!canChangePriority || saveMutation.isPending}
                   onChange={(event) => setSelectedPriority(event.target.value as Priority)}
                 >
                   {["P1", "P2", "P3", "P4", "P5"].map((priority) => (
