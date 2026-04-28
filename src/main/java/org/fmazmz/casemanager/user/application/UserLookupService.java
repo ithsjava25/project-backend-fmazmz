@@ -7,6 +7,7 @@ import org.fmazmz.casemanager.user.repository.UserRepository;
 import org.fmazmz.casemanager.user.repository.UserRoleMappingRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,5 +27,11 @@ public class UserLookupService {
 
     public UserResponse toResponseWithRoles(User user) {
         return UserMapper.toDto(user, userRoleMappingRepository.findRoleNamesByUserId(user.getId()));
+    }
+
+    public List<UserResponse> lookupByIds(List<UUID> userIds) {
+        return userRepository.findAllById(userIds).stream()
+                .map(this::toResponseWithRoles)
+                .toList();
     }
 }

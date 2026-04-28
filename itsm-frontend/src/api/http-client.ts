@@ -40,14 +40,22 @@ const withQuery = (path: string, query?: RequestConfig["query"]) => {
 
 export const request = async <T>(path: string, config: RequestConfig = {}): Promise<T> => {
   const url = `${env.apiBaseUrl}${withQuery(path, config.query)}`
+  const isFormData = config.body instanceof FormData
+  const requestBody =
+    config.body === undefined
+      ? undefined
+      : isFormData
+        ? (config.body as FormData)
+        : JSON.stringify(config.body ?? null)
+  const headers = {
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(config.headers ?? {}),
+  }
   const response = await fetch(url, {
     method: config.method ?? "GET",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(config.headers ?? {}),
-    },
-    body: config.body === undefined ? undefined : JSON.stringify(config.body),
+    headers,
+    body: requestBody,
   })
 
   if (!response.ok) {

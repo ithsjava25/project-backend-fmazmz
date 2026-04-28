@@ -1,6 +1,7 @@
 import { request } from "@/api/http-client"
 import type {
   AssignmentGroupResponse,
+  AttachmentSummaryResponse,
   AttachmentViewUrlResponse,
   AuditLogEntry,
   ChangeTicketStatusRequest,
@@ -52,6 +53,23 @@ export const caseManagerApi = {
       request<TicketResponse>(`/api/v1/tickets/${ticketId}/comment`, { method: "POST", body }),
     getAttachmentViewUrl: (ticketId: UUID, attachmentId: UUID) =>
       request<AttachmentViewUrlResponse>(`/api/v1/tickets/${ticketId}/attachments/${attachmentId}/view-url`),
+    listAttachments: (ticketId: UUID) =>
+      request<AttachmentSummaryResponse[]>(`/api/v1/tickets/${ticketId}/attachments`),
+    uploadAttachment: (ticketId: UUID, file: File) => {
+      const formData = new FormData()
+      formData.append("file", file)
+      return request<TicketResponse>(`/api/v1/tickets/${ticketId}/attachment`, {
+        method: "POST",
+        body: formData,
+      })
+    },
+  },
+  users: {
+    lookupByIds: (userIds: UUID[]) =>
+      request<UserResponse[]>("/api/v1/users/lookup", {
+        method: "POST",
+        body: { userIds },
+      }),
   },
   assignmentGroups: {
     list: () => request<AssignmentGroupResponse[]>("/api/v1/assignment-groups"),

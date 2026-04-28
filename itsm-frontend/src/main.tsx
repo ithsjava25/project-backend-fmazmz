@@ -1,10 +1,25 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
+import { Toaster } from '@/components/ui/sonner'
+import { AppErrorBoundary } from '@/components/app-error-boundary'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { queryClient } from '@/lib/query-client'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <TooltipProvider>
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
+          <Toaster />
+        </TooltipProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   </StrictMode>,
 )

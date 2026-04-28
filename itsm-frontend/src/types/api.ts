@@ -115,6 +115,15 @@ export interface AttachmentViewUrlResponse {
   expiresAt: ISODate
 }
 
+export interface AttachmentSummaryResponse {
+  id: UUID
+  fileName: string
+  contentType: string
+  fileSize: number
+  uploadedByEmail: string
+  createdAt: ISODate
+}
+
 export interface AssignmentGroupResponse {
   id: UUID
   name: string

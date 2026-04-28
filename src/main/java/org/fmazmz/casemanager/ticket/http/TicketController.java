@@ -6,6 +6,7 @@ import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.application.TicketOrchestrator;
@@ -31,6 +32,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 public class TicketController implements TicketApi {
@@ -193,6 +195,16 @@ public class TicketController implements TicketApi {
                 ticketId,
                 attachmentId
         );
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @GetMapping("{ticketId}/attachments")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<List<AttachmentSummaryResponse>>> listAttachments(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId
+    ) {
+        List<AttachmentSummaryResponse> response = ticketQueryFacade.listAttachments(actor.getId(), ticketId);
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
     }
 }

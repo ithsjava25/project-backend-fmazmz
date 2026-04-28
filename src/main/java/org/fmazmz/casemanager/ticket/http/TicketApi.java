@@ -11,6 +11,7 @@ import org.fmazmz.casemanager.common.api.openapi.StandardRestApiResponses;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
+import java.util.List;
 
 @Tag(name = "Ticket API", description = "Perform CRUD operations on Tickets")
 @RequestMapping(
@@ -195,5 +197,14 @@ public interface TicketApi {
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
             @PathVariable UUID attachmentId
+    );
+
+    @Operation(summary = "List attachments for a ticket")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}/attachments")
+    ResponseEntity<ApiResponseWrapper<List<AttachmentSummaryResponse>>> listAttachments(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId
     );
 }

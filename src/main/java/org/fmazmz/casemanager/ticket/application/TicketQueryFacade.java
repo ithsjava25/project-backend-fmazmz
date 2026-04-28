@@ -7,6 +7,7 @@ import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.domain.Attachment;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -150,6 +152,22 @@ public class TicketQueryFacade {
                 attachment.getContentType()
         );
         return new AttachmentViewUrlResponse(result.url(), result.expiresAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttachmentSummaryResponse> listAttachments(UUID actorId, UUID ticketId) {
+        requireActorWithTicketRead(actorId);
+
+        return attachmentRepository.findAllByTicketId(ticketId).stream()
+                .map(attachment -> new AttachmentSummaryResponse(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        attachment.getContentType(),
+                        attachment.getFileSize(),
+                        attachment.getUploadedBy().getEmail(),
+                        attachment.getCreatedAt()
+                ))
+                .toList();
     }
 
     private User requireActorWithTicketRead(UUID actorId) {
