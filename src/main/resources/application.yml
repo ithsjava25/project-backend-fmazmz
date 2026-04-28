@@ -66,3 +66,7 @@ app:
       bucket: ${AWS_S3_BUCKET}
       region: ${AWS_REGION}
       public-base-url: ${AWS_S3_PUBLIC_BASE_URL}
+
+  ticket:
+    # ISO-8601 duration; resolved tickets older than this can be auto-closed by TicketOrchestrator#autoCloseResolvedTickets
+    auto-close-after: P7D

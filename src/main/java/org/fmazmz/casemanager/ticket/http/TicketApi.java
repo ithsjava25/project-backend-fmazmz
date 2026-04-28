@@ -12,6 +12,7 @@ import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
+import org.fmazmz.casemanager.ticket.dto.AutoCloseResolvedTicketsResponse;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -218,5 +219,12 @@ public interface TicketApi {
     ResponseEntity<ApiResponseWrapper<List<AttachmentSummaryResponse>>> listAttachments(
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId
+    );
+
+    @Operation(summary = "Close resolved tickets older than configured duration (app.ticket.auto-close-after)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @PostMapping("maintenance/auto-close-resolved")
+    ResponseEntity<ApiResponseWrapper<AutoCloseResolvedTicketsResponse>> autoCloseResolvedTickets(
+            @Parameter(hidden = true) @CurrentUser User actor
     );
 }

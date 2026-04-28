@@ -5,6 +5,7 @@ import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.dto.AutoCloseResolvedTicketsResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -219,5 +220,14 @@ public class TicketController implements TicketApi {
     ) {
         List<AttachmentSummaryResponse> response = ticketQueryFacade.listAttachments(actor.getId(), ticketId);
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PostMapping("maintenance/auto-close-resolved")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<AutoCloseResolvedTicketsResponse>> autoCloseResolvedTickets(
+            @CurrentUser User actor
+    ) {
+        int closedCount = ticketOrchestrator.autoCloseResolvedTickets(actor.getId());
+        return ResponseEntity.ok(new ApiResponseWrapper<>(new AutoCloseResolvedTicketsResponse(closedCount)));
     }
 }

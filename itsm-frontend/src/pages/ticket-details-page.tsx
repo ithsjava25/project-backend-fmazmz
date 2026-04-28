@@ -235,6 +235,9 @@ export const TicketDetailsPage = () => {
     return <div className="text-sm text-muted-foreground">Loading ticket details...</div>
   }
 
+  const assignmentGroupLabel = (group: { name: string; description: string | null }) =>
+    group.description?.trim() ? `${group.name} - ${group.description}` : group.name
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -324,7 +327,7 @@ export const TicketDetailsPage = () => {
                 </select>
               </div>
               <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">State</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Status</p>
                 <select
                   className={`h-9 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
                     showResolutionError ? "border-red-500" : "border-input"
@@ -354,9 +357,14 @@ export const TicketDetailsPage = () => {
                   onChange={(event) => setSelectedAssignmentGroup(event.target.value)}
                 >
                   <option value="">Unassigned</option>
+                  {selectedAssignmentGroup &&
+                    !(groupsQuery.data ?? []).some((group) => group.id === selectedAssignmentGroup) &&
+                    ticket.assignmentGroupName && (
+                      <option value={selectedAssignmentGroup}>{ticket.assignmentGroupName}</option>
+                    )}
                   {(groupsQuery.data ?? []).map((group) => (
                     <option key={group.id} value={group.id}>
-                      {group.name}
+                      {assignmentGroupLabel(group)}
                     </option>
                   ))}
                 </select>

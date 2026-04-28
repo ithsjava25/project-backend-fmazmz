@@ -33,11 +33,15 @@ import org.fmazmz.casemanager.user.application.UserLookupService;
 import org.fmazmz.casemanager.user.domain.User;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
@@ -57,6 +61,7 @@ public class TicketOrchestrator {
     private final AssignmentGroupRepository assignmentGroupRepository;
     private final AttachmentRepository attachmentRepository;
     private final StorageService storageService;
+    private final Duration autoCloseResolvedAfter;
 
     public TicketOrchestrator(TicketRepository ticketRepository, UserLookupService userLookupService,
                               TicketNumberGenerator numberGenerator, PermissionEvaluator permissionEvaluator,
@@ -64,7 +69,8 @@ public class TicketOrchestrator {
                               TicketWorkflowValidator workflowValidator, CommentRepository commentRepository,
                               AssignmentGroupRepository assignmentGroupRepository,
                               AttachmentRepository attachmentRepository,
-                              StorageService storageService) {
+                              StorageService storageService,
+                              @Value("${app.ticket.auto-close-after:P7D}") Duration autoCloseResolvedAfter) {
         this.ticketRepository = ticketRepository;
         this.userLookupService = userLookupService;
         this.numberGenerator = numberGenerator;
@@ -76,6 +82,24 @@ public class TicketOrchestrator {
         this.assignmentGroupRepository = assignmentGroupRepository;
         this.attachmentRepository = attachmentRepository;
         this.storageService = storageService;
+        this.autoCloseResolvedAfter = autoCloseResolvedAfter;
+    }
+
+    @Transactional
+    public int autoCloseResolvedTickets(UUID actorId) {
+        User actor = userLookupService.requireActor(actorId);
+        if (!permissionEvaluator.hasPermission(actor, TicketAction.CHANGE_STATUS)) {
+            throw new AccessDeniedException("User is not authorized to perform action: " + TicketAction.CHANGE_STATUS);
+        }
+
+        Instant cutoff = Instant.now().minus(autoCloseResolvedAfter);
+        List<Ticket> staleResolvedTickets = ticketRepository.findByStatusAndUpdatedAtBefore(TicketStatus.RESOLVED, cutoff);
+        staleResolvedTickets.forEach(ticket -> {
+            ticket.setStatus(TicketStatus.CLOSED);
+            auditLogWriter.logChange(ticket, actor, TicketAction.CHANGE_STATUS, "status", TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
+        });
+        ticketRepository.saveAll(staleResolvedTickets);
+        return staleResolvedTickets.size();
     }
 
     @Transactional

@@ -157,10 +157,6 @@ export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRol
               </div>
             ))}
           </nav>
-          <div className="mt-8 rounded-2xl border border-border/60 bg-background/70 p-4">
-            <p className="text-sm font-medium">Signed in</p>
-            <p className="mt-1 break-all text-xs text-muted-foreground">{user.email}</p>
-          </div>
         </aside>
 
         <div className="flex min-h-screen flex-col">
