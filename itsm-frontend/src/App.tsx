@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import { ApiError } from "@/api/http-client"
 import { AuthTransitionScreen } from "@/components/auth-transition-screen"
 import { GithubLoginPage } from "@/components/github-login-page"
@@ -29,8 +29,11 @@ import { UsersPage } from "@/pages/users-page"
 import type { RoleName, UserResponse } from "@/types/api"
 
 const AUTH_REDIRECT_FLAG = "case-manager-auth-redirect-started"
+const POST_LOGIN_REDIRECT_PATH = "case-manager-post-login-redirect-path"
 
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [authPhase, setAuthPhase] = useState<"idle" | "signing-in" | "welcome">("idle")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -44,7 +47,11 @@ function App() {
     })
 
   const checkSession = async ({ showWelcome }: { showWelcome: boolean }) => {
-    setAuthPhase("signing-in")
+    if (showWelcome) {
+      setAuthPhase("signing-in")
+    } else {
+      setAuthPhase("idle")
+    }
     try {
       const currentUser = await caseManagerApi.auth.me()
       setUser(currentUser)
@@ -82,8 +89,34 @@ function App() {
     void checkSession({ showWelcome: startedFromRedirect })
   }, [])
 
-  if (!hasCheckedSession || authPhase === "signing-in") {
+  useEffect(() => {
+    const currentPath = `${location.pathname}${location.search}${location.hash}`
+    if (!isAuthenticated && currentPath.startsWith("/app")) {
+      localStorage.setItem(POST_LOGIN_REDIRECT_PATH, currentPath)
+    }
+  }, [isAuthenticated, location.pathname, location.search, location.hash])
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      return
+    }
+    const targetPath = localStorage.getItem(POST_LOGIN_REDIRECT_PATH)
+    if (!targetPath) {
+      return
+    }
+    localStorage.removeItem(POST_LOGIN_REDIRECT_PATH)
+    const currentPath = `${location.pathname}${location.search}${location.hash}`
+    if (targetPath !== currentPath) {
+      navigate(targetPath, { replace: true })
+    }
+  }, [isAuthenticated, user, location.pathname, location.search, location.hash, navigate])
+
+  if (authPhase === "signing-in") {
     return <AuthTransitionScreen phase="signing-in" />
+  }
+
+  if (!hasCheckedSession) {
+    return null
   }
 
   if (authPhase === "welcome") {
@@ -125,6 +158,7 @@ function App() {
                 setUser(null)
                 setAuthError(null)
                 setAuthPhase("idle")
+                localStorage.removeItem(POST_LOGIN_REDIRECT_PATH)
               }}
               onError={(message) => setAuthError(message)}
             />

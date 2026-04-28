@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, NavLink, Outlet } from "react-router-dom"
-import { Bell, ClipboardList, Gauge, LogOut, Search, Shield, UserCheck, Users, UserCircle, UsersRound, Workflow, FilePlus2 } from "lucide-react"
+import { Bell, ChevronDown, ClipboardList, Gauge, LogOut, Search, Shield, UserCheck, Users, UserCircle, UsersRound, Workflow, FilePlus2 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { caseManagerApi } from "@/api/case-manager-client"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatEnumLabel } from "@/lib/format"
@@ -264,30 +263,71 @@ export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRol
                 )}
               </div>
               <div className="flex items-center gap-3">
-                {canUseRolePreview && (
-                  <div className="hidden items-center gap-1 md:flex">
-                    <Button variant={previewRole === null ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole(null)}>Real</Button>
-                    <Button variant={previewRole === "ADMIN" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("ADMIN")}>Admin</Button>
-                    <Button variant={previewRole === "AGENT" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("AGENT")}>Agent</Button>
-                    <Button variant={previewRole === "SUPER_AGENT" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("SUPER_AGENT")}>Super Agent</Button>
-                    <Button variant={previewRole === "REPORTER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("REPORTER")}>Reporter</Button>
-                    <Button variant={previewRole === "VIEWER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("VIEWER")}>Viewer</Button>
-                  </div>
-                )}
                 <div className="hidden text-right md:block">
                   <p className="text-sm font-medium">{user.userName}</p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="rounded-xl bg-background">
-                      Account
-                    </Button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 rounded-full px-1 py-1 transition-colors hover:bg-muted"
+                    >
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt={user.userName}
+                          className="size-8 rounded-full border border-border object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-8 items-center justify-center rounded-full border border-border bg-muted text-xs font-medium">
+                          {user.userName?.slice(0, 1).toUpperCase() || "U"}
+                        </div>
+                      )}
+                      <ChevronDown className="size-4 text-muted-foreground" />
+                    </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link to="/app/settings">Profile & settings</Link>
                     </DropdownMenuItem>
+                    {canUseRolePreview && (
+                      <>
+                        <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Views
+                        </div>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole(null)}>
+                            Role preview: Real account {previewRole === null ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole("ADMIN")}>
+                            Role preview: Admin {previewRole === "ADMIN" ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole("AGENT")}>
+                            Role preview: Agent {previewRole === "AGENT" ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole("SUPER_AGENT")}>
+                            Role preview: Super Agent {previewRole === "SUPER_AGENT" ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole("REPORTER")}>
+                            Role preview: Reporter {previewRole === "REPORTER" ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button type="button" className="block w-full whitespace-nowrap text-left" onClick={() => onSetPreviewRole("VIEWER")}>
+                            Role preview: Viewer {previewRole === "VIEWER" ? "✓" : ""}
+                          </button>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link to="/logout" className="flex items-center">
                         <LogOut className="mr-2 size-4" />

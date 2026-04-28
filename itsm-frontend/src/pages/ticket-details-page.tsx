@@ -281,13 +281,13 @@ export const TicketDetailsPage = () => {
         </CardHeader>
         <CardContent className="space-y-6 pt-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,420px)] lg:justify-center lg:gap-14">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Incident number</p>
-                <Input value={ticket.number} disabled className="max-w-sm bg-muted text-muted-foreground" />
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-4">
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Number</p>
+                <Input value={ticket.number} disabled className="h-9 bg-muted text-muted-foreground" />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Reported by</p>
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Caller</p>
                 <Input
                   value={
                     requesterQuery.data
@@ -295,23 +295,23 @@ export const TicketDetailsPage = () => {
                       : "Loading requester..."
                   }
                   disabled
-                  className="max-w-sm bg-muted text-muted-foreground"
+                  className="h-9 bg-muted text-muted-foreground"
                 />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Opened at</p>
-                <Input value={formatDateTime(ticket.createdAt)} disabled className="max-w-sm bg-muted text-muted-foreground" />
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Opened</p>
+                <Input value={formatDateTime(ticket.createdAt)} disabled className="h-9 bg-muted text-muted-foreground" />
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Updated at</p>
-                <Input value={formatDateTime(ticket.updatedAt)} disabled className="max-w-sm bg-muted text-muted-foreground" />
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Updated</p>
+                <Input value={formatDateTime(ticket.updatedAt)} disabled className="h-9 bg-muted text-muted-foreground" />
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Priority</p>
+            <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-4">
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">Priority</p>
                 <select
-                  className="h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
                   value={selectedPriority}
                   disabled={!canChangePriority || saveMutation.isPending}
                   onChange={(event) => setSelectedPriority(event.target.value as Priority)}
@@ -323,10 +323,10 @@ export const TicketDetailsPage = () => {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">State</p>
                 <select
-                  className={`h-10 w-full max-w-sm rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
+                  className={`h-9 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
                     showResolutionError ? "border-red-500" : "border-input"
                   }`}
                   value={selectedStatus}
@@ -340,12 +340,12 @@ export const TicketDetailsPage = () => {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Assignment group {requiresAssignment && <span className="text-red-400">*</span>}
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">
+                  Assignment group
                 </p>
                 <select
-                  className={`h-10 w-full max-w-sm rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
+                  className={`h-9 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
                     showAssignmentGroupError ? "border-red-500" : "border-input"
                   }`}
                   value={selectedAssignmentGroup}
@@ -361,9 +361,9 @@ export const TicketDetailsPage = () => {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Assigned to {requiresAssignment && <span className="text-red-400">*</span>}
+              <div className="grid items-center gap-3 md:grid-cols-[130px_1fr]">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground md:text-right">
+                  Assigned to
                 </p>
                 <select
                   value={selectedAssignee}
@@ -374,7 +374,7 @@ export const TicketDetailsPage = () => {
                     }
                   }}
                   onChange={(event) => setSelectedAssignee(event.target.value)}
-                  className={`h-10 w-full max-w-sm rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
+                  className={`h-9 w-full rounded-md border bg-background px-3 py-2 text-sm disabled:opacity-60 ${
                     showAssigneeError ? "border-red-500" : "border-input"
                   }`}
                 >
@@ -385,10 +385,10 @@ export const TicketDetailsPage = () => {
                     </option>
                   ))}
                 </select>
-                {selectedAssignmentGroup && selectedGroupMemberIds.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No members found in this assignment group.</p>
-                )}
               </div>
+              {selectedAssignmentGroup && selectedGroupMemberIds.length === 0 && (
+                <p className="pl-[130px] text-xs text-muted-foreground">No members found in this assignment group.</p>
+              )}
               {(showAssignmentGroupError || showAssigneeError) && (
                 <p className="text-xs text-red-400">
                   {showAssignmentGroupError ? "* Assignment group is required for WORK_IN_PROGRESS. " : ""}
