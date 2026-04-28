@@ -18,4 +18,6 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     Page<Ticket> findByAssignee_Id(UUID assigneeId, Pageable pageable);
 
     Page<Ticket> findByAssignmentGroup_Id(UUID assignmentGroupId, Pageable pageable);
+
+    Page<Ticket> findByNumberContainingIgnoreCaseOrTitleContainingIgnoreCase(String number, String title, Pageable pageable);
 }

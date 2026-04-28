@@ -39,6 +39,8 @@ export const caseManagerApi = {
       request<PagedResult<TicketResponse>>(`/api/v1/tickets/assignee/${userId}`, { query }),
     listByAssignmentGroup: (assignmentGroupId: UUID, query: PaginationQuery = {}) =>
       request<PagedResult<TicketResponse>>(`/api/v1/tickets/assignment-group/${assignmentGroupId}`, { query }),
+    search: (q: string, query: PaginationQuery = {}) =>
+      request<PagedResult<TicketResponse>>("/api/v1/tickets/search", { query: { ...query, q } }),
     getById: (ticketId: UUID) => request<TicketResponse>(`/api/v1/tickets/${ticketId}`),
     getByNumber: (ticketNumber: string) => request<TicketResponse>(`/api/v1/tickets/number/${ticketNumber}`),
     create: (body: CreateTicketRequest) =>
@@ -70,9 +72,11 @@ export const caseManagerApi = {
         method: "POST",
         body: { userIds },
       }),
+    search: (q: string) => request<UserResponse[]>("/api/v1/users/search", { query: { q } }),
   },
   assignmentGroups: {
     list: () => request<AssignmentGroupResponse[]>("/api/v1/assignment-groups"),
+    search: (q: string) => request<AssignmentGroupResponse[]>("/api/v1/assignment-groups/search", { query: { q } }),
     getById: (groupId: UUID) => request<AssignmentGroupResponse>(`/api/v1/assignment-groups/${groupId}`),
     create: (body: CreateAssignmentGroupRequest) =>
       request<AssignmentGroupResponse>("/api/v1/assignment-groups", { method: "POST", body }),

@@ -47,7 +47,7 @@ export const AssignedToMyGroupsPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Assigned To My Groups"
-        description="Tickets assigned to any assignment group where you are a member."
+        description="Incidents assigned to any assignment group where you are a member."
       />
       <Card>
         <CardHeader>
@@ -83,7 +83,7 @@ export const AssignedToMyGroupsPage = () => {
               {sortedTickets.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No tickets are assigned to your groups.
+                    No incidents are assigned to your groups.
                   </TableCell>
                 </TableRow>
               )}

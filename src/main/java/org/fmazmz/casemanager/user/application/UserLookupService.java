@@ -5,6 +5,7 @@ import org.fmazmz.casemanager.user.dto.UserResponse;
 import org.fmazmz.casemanager.user.mapper.UserMapper;
 import org.fmazmz.casemanager.user.repository.UserRepository;
 import org.fmazmz.casemanager.user.repository.UserRoleMappingRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,5 +46,21 @@ public class UserLookupService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         return toResponseWithRoles(user);
+    }
+
+    public List<UserResponse> searchUsers(String query) {
+        String normalized = query == null ? "" : query.trim();
+        if (normalized.isBlank()) {
+            return List.of();
+        }
+        return userRepository
+                .findByUserNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        normalized,
+                        normalized,
+                        PageRequest.of(0, 10)
+                )
+                .stream()
+                .map(this::toResponseWithRoles)
+                .toList();
     }
 }

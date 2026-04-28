@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -86,6 +87,17 @@ public interface TicketApi {
             @PathVariable UUID assignmentGroupId,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "Search tickets by number/title")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping("search")
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> searchTickets(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @RequestParam("q") String query,
+            @ParameterObject
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
             Pageable pageable
     );
 

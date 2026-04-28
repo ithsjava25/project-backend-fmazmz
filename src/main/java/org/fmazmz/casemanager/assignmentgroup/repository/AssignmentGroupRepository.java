@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,4 +22,10 @@ public interface AssignmentGroupRepository extends JpaRepository<AssignmentGroup
             where g.id = :groupId and m.id = :userId
             """)
     boolean isUserMember(@Param("groupId") UUID groupId, @Param("userId") UUID userId);
+
+    List<AssignmentGroup> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+            String name,
+            String description,
+            Pageable pageable
+    );
 }

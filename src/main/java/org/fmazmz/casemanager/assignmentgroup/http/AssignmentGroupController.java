@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,6 +36,15 @@ public class AssignmentGroupController implements AssignmentGroupApi {
     @Override
     public ResponseEntity<ApiResponseWrapper<List<AssignmentGroupResponse>>> listGroups(@CurrentUser User actor) {
         return ResponseEntity.ok(new ApiResponseWrapper<>(assignmentGroupOrchestrator.listGroups()));
+    }
+
+    @GetMapping("search")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<List<AssignmentGroupResponse>>> searchGroups(
+            @CurrentUser User actor,
+            @RequestParam("q") String query
+    ) {
+        return ResponseEntity.ok(new ApiResponseWrapper<>(assignmentGroupOrchestrator.searchGroups(query)));
     }
 
     @GetMapping("{id}")

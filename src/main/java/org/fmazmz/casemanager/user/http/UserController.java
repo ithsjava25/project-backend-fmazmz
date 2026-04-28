@@ -8,9 +8,11 @@ import org.fmazmz.casemanager.user.dto.UserLookupRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -18,7 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping(
         path = "api/v1/users",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 public class UserController implements UserApi {
@@ -36,6 +37,16 @@ public class UserController implements UserApi {
             @RequestBody UserLookupRequest request
     ) {
         var users = userLookupService.lookupByIds(request.userIds());
+        return ResponseEntity.ok(new ApiResponseWrapper<>(users));
+    }
+
+    @GetMapping("search")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<List<UserResponse>>> searchUsers(
+            @CurrentUser User actor,
+            @RequestParam("q") String query
+    ) {
+        var users = userLookupService.searchUsers(query);
         return ResponseEntity.ok(new ApiResponseWrapper<>(users));
     }
 }

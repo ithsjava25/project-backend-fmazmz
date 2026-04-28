@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -40,6 +41,14 @@ public interface AssignmentGroupApi {
     @GetMapping
     ResponseEntity<ApiResponseWrapper<List<AssignmentGroupResponse>>> listGroups(
             @Parameter(hidden = true) @CurrentUser User actor
+    );
+
+    @Operation(summary = "Search assignment groups by name/description")
+    @ApiResponse(responseCode = "200", description = "OK", useReturnTypeSchema = true)
+    @GetMapping("search")
+    ResponseEntity<ApiResponseWrapper<List<AssignmentGroupResponse>>> searchGroups(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @RequestParam("q") String query
     );
 
     @Operation(summary = "Get an assignment group by id")

@@ -12,7 +12,7 @@ export const NotificationsPage = () => {
         </CardHeader>
         <CardContent>
           <div className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
-            No notification API is available yet. This page is ready for backend notification data when the endpoint is added.
+            No notification API is available yet.
           </div>
         </CardContent>
       </Card>

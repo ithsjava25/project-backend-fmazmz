@@ -19,6 +19,7 @@ import org.fmazmz.casemanager.common.pagination.PagedResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -120,6 +121,23 @@ public class TicketQueryFacade {
         log.debug("Listing tickets: actorId={}, filter=assignmentGroupId={}, page={}", actorId, assignmentGroupId, pageable.getPageNumber());
 
         Page<Ticket> page = ticketRepository.findByAssignmentGroup_Id(assignmentGroupId, pageable);
+        return TicketMapper.mapPage(page);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResult<TicketResponse> search(UUID actorId, String query, Pageable pageable) {
+        requireActorWithTicketRead(actorId);
+        String normalized = query == null ? "" : query.trim();
+        if (normalized.isBlank()) {
+            return new PagedResult<>(java.util.List.of(), org.fmazmz.casemanager.common.pagination.PageMetadata.from(
+                    Page.empty(PageRequest.of(0, pageable.getPageSize() > 0 ? pageable.getPageSize() : 10))
+            ));
+        }
+        Page<Ticket> page = ticketRepository.findByNumberContainingIgnoreCaseOrTitleContainingIgnoreCase(
+                normalized,
+                normalized,
+                pageable
+        );
         return TicketMapper.mapPage(page);
     }
 

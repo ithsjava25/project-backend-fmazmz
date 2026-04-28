@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -90,6 +91,18 @@ public class TicketController implements TicketApi {
             Pageable pageable) {
 
         return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.findByAssignmentGroupId(actor.getId(), assignmentGroupId, pageable)));
+    }
+
+    @GetMapping("search")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> searchTickets(
+            @CurrentUser User actor,
+            @RequestParam("q") String query,
+            @ParameterObject
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.search(actor.getId(), query, pageable)));
     }
 
     @GetMapping("{ticketId}")

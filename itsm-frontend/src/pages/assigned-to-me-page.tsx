@@ -21,7 +21,7 @@ export const AssignedToMePage = () => {
     <div className="space-y-6">
       <PageHeader
         title="Assigned To Me"
-        description="Tickets currently assigned to your user account."
+        description="Incidents currently assigned to your user account."
       />
       <Card>
         <CardHeader>
@@ -57,7 +57,7 @@ export const AssignedToMePage = () => {
               {tickets.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No tickets are currently assigned to you.
+                    No incidents are currently assigned to you.
                   </TableCell>
                 </TableRow>
               )}
