@@ -28,7 +28,6 @@ import java.util.UUID;
 @Tag(name = "Admin User API", description = "Admin operations for user provisioning and role management")
 @RequestMapping(
         path = "api/v1/admin",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
 )
 @StandardRestApiResponses

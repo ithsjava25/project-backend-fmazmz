@@ -33,21 +33,24 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [user, setUser] = useState<UserResponse | null>(null)
+  const [hasCheckedSession, setHasCheckedSession] = useState(false)
 
   const wait = (durationMs: number) =>
     new Promise<void>((resolve) => {
       window.setTimeout(resolve, durationMs)
     })
 
-  const checkSession = async () => {
+  const checkSession = async ({ showWelcome }: { showWelcome: boolean }) => {
     setAuthPhase("signing-in")
     try {
       const currentUser = await caseManagerApi.auth.me()
       setUser(currentUser)
       setIsAuthenticated(true)
       setAuthError(null)
-      setAuthPhase("welcome")
-      await wait(1800)
+      if (showWelcome) {
+        setAuthPhase("welcome")
+        await wait(1800)
+      }
       setAuthPhase("idle")
     } catch (requestError) {
       if (requestError instanceof ApiError && (requestError.status === 401 || requestError.status === 403)) {
@@ -63,17 +66,20 @@ function App() {
         setAuthError(message.includes("Failed to fetch") ? null : message)
       }
       setAuthPhase("idle")
+    } finally {
+      setHasCheckedSession(true)
     }
   }
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_REDIRECT_FLAG) === "1") {
+    const startedFromRedirect = localStorage.getItem(AUTH_REDIRECT_FLAG) === "1"
+    if (startedFromRedirect) {
       localStorage.removeItem(AUTH_REDIRECT_FLAG)
-      void checkSession()
     }
+    void checkSession({ showWelcome: startedFromRedirect })
   }, [])
 
-  if (authPhase === "signing-in") {
+  if (!hasCheckedSession || authPhase === "signing-in") {
     return <AuthTransitionScreen phase="signing-in" />
   }
 
