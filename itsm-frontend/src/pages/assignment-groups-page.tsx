@@ -1,103 +1,63 @@
-import { useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { useQuery } from "@tanstack/react-query"
+import { Link } from "react-router-dom"
 import { caseManagerApi } from "@/api/case-manager-client"
 import { PageHeader } from "@/components/page-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export const AssignmentGroupsPage = () => {
-  const queryClient = useQueryClient()
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [memberIds, setMemberIds] = useState("")
-
   const groupsQuery = useQuery({
     queryKey: ["assignment-groups"],
     queryFn: caseManagerApi.assignmentGroups.list,
   })
-
-  const createMutation = useMutation({
-    mutationFn: () => caseManagerApi.assignmentGroups.create({ name, description }),
-    onSuccess: () => {
-      setName("")
-      setDescription("")
-      toast.success("Assignment group created")
-      void queryClient.invalidateQueries({ queryKey: ["assignment-groups"] })
-    },
-    onError: (error: Error) => toast.error(error.message),
-  })
-
-  const addMembersMutation = useMutation({
-    mutationFn: ({ groupId, users }: { groupId: string; users: string[] }) =>
-      caseManagerApi.assignmentGroups.addMembers(groupId, { userIds: users }),
-    onSuccess: () => toast.success("Members updated"),
-    onError: (error: Error) => toast.error(error.message),
-  })
+  const groups = groupsQuery.data ?? []
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Assignment Groups" description="Manage resolver groups and their members." />
-      <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <Card>
-          <CardHeader><CardTitle>Groups</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {groupsQuery.data?.map((group) => (
-              <div key={group.id} className="rounded-md border border-border p-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{group.name}</p>
-                    <p className="text-sm text-muted-foreground">{group.description ?? "No description"}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Members: {group.memberIds.length}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      addMembersMutation.mutate({
-                        groupId: group.id,
-                        users: memberIds.split(",").map((item) => item.trim()).filter(Boolean),
-                      })
-                    }
-                  >
-                    Add Members
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {groupsQuery.data?.length === 0 && (
-              <p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">
-                No assignment groups returned by the API.
-              </p>
-            )}
-            <Input
-              placeholder="CSV user IDs to add (used by selected group button)"
-              value={memberIds}
-              onChange={(event) => setMemberIds(event.target.value)}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle>Create group</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="Group name" />
-            <Textarea
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={4}
-              placeholder="Description"
-            />
-            <Button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !name}>
-              {createMutation.isPending ? "Creating..." : "Create group"}
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+      <PageHeader
+        title="Assignment Groups"
+        description="Browse all assignment groups and open a group to manage details and membership."
+      />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border">
+          <CardTitle>All groups</CardTitle>
+          <Link to="/app/assignment-groups/new" className={buttonVariants()}>
+            Create new group
+          </Link>
+        </CardHeader>
+        <CardContent className="pt-5">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Members</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groups.map((group) => (
+                <TableRow key={group.id}>
+                  <TableCell className="font-medium">
+                    <Link to={`/app/assignment-groups/${group.id}`} className="hover:underline">
+                      {group.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{group.description ?? "No description"}</TableCell>
+                  <TableCell>{group.memberIds.length}</TableCell>
+                </TableRow>
+              ))}
+              {groups.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="py-10 text-center text-muted-foreground">
+                    No assignment groups available.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }

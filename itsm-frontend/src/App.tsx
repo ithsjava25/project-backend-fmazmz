@@ -9,6 +9,8 @@ import { caseManagerApi } from "@/api/case-manager-client"
 import { env } from "@/config/env"
 import { AuthProvider } from "@/lib/auth-context"
 import { AssignmentGroupsPage } from "@/pages/assignment-groups-page"
+import { AssignmentGroupCreatePage } from "@/pages/assignment-group-create-page"
+import { AssignmentGroupDetailsPage } from "@/pages/assignment-group-details-page"
 import { AssignedToMePage } from "@/pages/assigned-to-me-page"
 import { AssignedToMyGroupsPage } from "@/pages/assigned-to-my-groups-page"
 import { AuditPage } from "@/pages/audit-page"
@@ -18,6 +20,8 @@ import { NotificationsPage } from "@/pages/notifications-page"
 import { SettingsPage } from "@/pages/settings-page"
 import { TicketDetailsPage } from "@/pages/ticket-details-page"
 import { TicketCreatePage } from "@/pages/ticket-create-page"
+import { UserCreatePage } from "@/pages/user-create-page"
+import { UserDetailsPage } from "@/pages/user-details-page"
 import { TicketsPage } from "@/pages/tickets-page"
 import { UsersPage } from "@/pages/users-page"
 import type { UserResponse } from "@/types/api"
@@ -117,7 +121,11 @@ function App() {
           <Route path="tickets/new" element={<TicketCreatePage />} />
           <Route path="tickets/:ticketId" element={<TicketDetailsPage />} />
           <Route path="assignment-groups" element={<AssignmentGroupsPage />} />
+          <Route path="assignment-groups/new" element={<AssignmentGroupCreatePage />} />
+          <Route path="assignment-groups/:groupId" element={<AssignmentGroupDetailsPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="users/new" element={<UserCreatePage />} />
+          <Route path="users/:userId" element={<UserDetailsPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />

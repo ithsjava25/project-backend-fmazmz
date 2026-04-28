@@ -91,6 +91,8 @@ export const caseManagerApi = {
       request<PagedResult<AuditLogEntry>>(`/api/v1/audit/${ticketId}`, { query }),
   },
   adminUsers: {
+    list: () => request<UserResponse[]>("/api/v1/admin/users"),
+    getById: (userId: UUID) => request<UserResponse>(`/api/v1/admin/users/${userId}`),
     create: (body: CreateUserRequest) =>
       request<UserResponse>("/api/v1/admin/users", { method: "POST", body }),
     replaceRoles: (body: UpdateUserRolesRequest) =>

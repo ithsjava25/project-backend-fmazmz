@@ -34,4 +34,16 @@ public class UserLookupService {
                 .map(this::toResponseWithRoles)
                 .toList();
     }
+
+    public List<UserResponse> listAllUsersWithRoles() {
+        return userRepository.findAll().stream()
+                .map(this::toResponseWithRoles)
+                .toList();
+    }
+
+    public UserResponse getUserByIdWithRoles(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return toResponseWithRoles(user);
+    }
 }
