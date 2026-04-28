@@ -20,11 +20,13 @@ import { NotificationsPage } from "@/pages/notifications-page"
 import { SettingsPage } from "@/pages/settings-page"
 import { TicketDetailsPage } from "@/pages/ticket-details-page"
 import { TicketCreatePage } from "@/pages/ticket-create-page"
+import { MyReportedTicketsPage } from "@/pages/my-reported-tickets-page"
+import { ReportIssuePage } from "@/pages/report-issue-page"
 import { UserCreatePage } from "@/pages/user-create-page"
 import { UserDetailsPage } from "@/pages/user-details-page"
 import { TicketsPage } from "@/pages/tickets-page"
 import { UsersPage } from "@/pages/users-page"
-import type { UserResponse } from "@/types/api"
+import type { RoleName, UserResponse } from "@/types/api"
 
 const AUTH_REDIRECT_FLAG = "case-manager-auth-redirect-started"
 
@@ -33,6 +35,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [user, setUser] = useState<UserResponse | null>(null)
+  const [previewRole, setPreviewRole] = useState<RoleName | null>(null)
   const [hasCheckedSession, setHasCheckedSession] = useState(false)
 
   const wait = (durationMs: number) =>
@@ -96,10 +99,18 @@ function App() {
     )
   }
 
+  const canUseRolePreview = user.roles.includes("ADMIN")
+  const effectiveUser = previewRole ? { ...user, roles: [previewRole] } : user
+  const isAdmin = effectiveUser.roles.includes("ADMIN")
+  const isAgent = effectiveUser.roles.includes("AGENT")
+  const isViewer = effectiveUser.roles.includes("VIEWER")
+  const isStaff = isAdmin || isAgent
+  const defaultAppPath = isStaff ? "/app/dashboard" : "/app/my-reported-tickets"
+
   return (
-    <AuthProvider value={{ user }}>
+    <AuthProvider value={{ user: effectiveUser }}>
       <Routes>
-        <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
+        <Route path="/" element={<Navigate to={defaultAppPath} replace />} />
         <Route
           path="/login"
           element={<GithubLoginPage loginUrl={env.githubLoginUrl} error={authError} />}
@@ -119,22 +130,35 @@ function App() {
             />
           }
         />
-        <Route path="/app" element={<AppShell user={user} />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="tickets" element={<TicketsPage />} />
-          <Route path="tickets/assigned-to-me" element={<AssignedToMePage />} />
-          <Route path="tickets/assigned-to-my-groups" element={<AssignedToMyGroupsPage />} />
-          <Route path="tickets/new" element={<TicketCreatePage />} />
+        <Route
+          path="/app"
+          element={
+            <AppShell
+              user={effectiveUser}
+              canUseRolePreview={canUseRolePreview}
+              previewRole={previewRole}
+              onSetPreviewRole={setPreviewRole}
+            />
+          }
+        >
+          {isStaff && <Route path="dashboard" element={<DashboardPage />} />}
+          {isStaff && <Route path="tickets" element={<TicketsPage />} />}
+          {isStaff && <Route path="tickets/assigned-to-me" element={<AssignedToMePage />} />}
+          {isStaff && <Route path="tickets/assigned-to-my-groups" element={<AssignedToMyGroupsPage />} />}
+          <Route path="my-reported-tickets" element={<MyReportedTicketsPage />} />
+          {isStaff && <Route path="tickets/new" element={<TicketCreatePage />} />}
+          {!isStaff && !isViewer && <Route path="report-issue" element={<ReportIssuePage />} />}
           <Route path="tickets/:ticketId" element={<TicketDetailsPage />} />
-          <Route path="assignment-groups" element={<AssignmentGroupsPage />} />
-          <Route path="assignment-groups/new" element={<AssignmentGroupCreatePage />} />
-          <Route path="assignment-groups/:groupId" element={<AssignmentGroupDetailsPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="users/new" element={<UserCreatePage />} />
-          <Route path="users/:userId" element={<UserDetailsPage />} />
-          <Route path="audit" element={<AuditPage />} />
+          {isAdmin && <Route path="assignment-groups" element={<AssignmentGroupsPage />} />}
+          {isAdmin && <Route path="assignment-groups/new" element={<AssignmentGroupCreatePage />} />}
+          {isAdmin && <Route path="assignment-groups/:groupId" element={<AssignmentGroupDetailsPage />} />}
+          {isAdmin && <Route path="users" element={<UsersPage />} />}
+          {isAdmin && <Route path="users/new" element={<UserCreatePage />} />}
+          {isAdmin && <Route path="users/:userId" element={<UserDetailsPage />} />}
+          {isAdmin && <Route path="audit" element={<AuditPage />} />}
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="*" element={<Navigate to={defaultAppPath} replace />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

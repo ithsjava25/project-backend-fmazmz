@@ -1,54 +1,82 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, NavLink, Outlet } from "react-router-dom"
-import { Bell, ClipboardList, Gauge, LogOut, Search, Shield, UserCheck, Users, UserCircle, UsersRound, Workflow } from "lucide-react"
+import { Bell, ClipboardList, Gauge, LogOut, Search, Shield, UserCheck, Users, UserCircle, UsersRound, Workflow, FilePlus2 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { caseManagerApi } from "@/api/case-manager-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatEnumLabel } from "@/lib/format"
-import type { UserResponse } from "@/types/api"
+import type { RoleName, UserResponse } from "@/types/api"
 
 type AppShellProps = {
   user: UserResponse
+  canUseRolePreview: boolean
+  previewRole: RoleName | null
+  onSetPreviewRole: (role: RoleName | null) => void
 }
 
-const navSections = [
-  {
-    label: "Overview",
-    items: [{ to: "/app/dashboard", label: "Dashboard", icon: Gauge }],
-  },
-  {
-    label: "Incident Operations",
-    items: [
-      { to: "/app/tickets", label: "Incidents", icon: ClipboardList },
-      { to: "/app/tickets/assigned-to-me", label: "Assigned To Me", icon: UserCheck },
-      { to: "/app/tickets/assigned-to-my-groups", label: "Assigned To My Groups", icon: UsersRound },
-    ],
-  },
-  {
-    label: "Administration",
-    items: [
-      { to: "/app/assignment-groups", label: "Assignment Groups", icon: Workflow },
-      { to: "/app/users", label: "Users & Roles", icon: Users },
-      { to: "/app/audit", label: "Audit Logs", icon: Shield },
-    ],
-  },
-  {
-    label: "Personal",
-    items: [
-      { to: "/app/notifications", label: "Notifications", icon: Bell },
-      { to: "/app/settings", label: "Settings", icon: UserCircle },
-    ],
-  },
-]
-
-export const AppShell = ({ user }: AppShellProps) => {
+export const AppShell = ({ user, canUseRolePreview, previewRole, onSetPreviewRole }: AppShellProps) => {
   const [searchText, setSearchText] = useState("")
   const [debouncedSearchText, setDebouncedSearchText] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const searchContainerRef = useRef<HTMLDivElement | null>(null)
   const normalizedSearchText = debouncedSearchText.trim()
+  const isAdmin = user.roles.includes("ADMIN")
+  const isAgent = user.roles.includes("AGENT")
+  const isViewer = user.roles.includes("VIEWER")
+  const isStaff = isAdmin || isAgent
+  const showBackofficeSearch = isStaff
+  const navSections = isStaff
+    ? [
+        {
+          label: "Overview",
+          items: [{ to: "/app/dashboard", label: "Dashboard", icon: Gauge }],
+        },
+        {
+          label: "Incident Operations",
+          items: [
+            { to: "/app/tickets", label: "Incidents", icon: ClipboardList },
+            { to: "/app/tickets/assigned-to-me", label: "Assigned To Me", icon: UserCheck },
+            { to: "/app/tickets/assigned-to-my-groups", label: "Assigned To My Groups", icon: UsersRound },
+          ],
+        },
+        ...(isAdmin
+          ? [
+              {
+                label: "Administration",
+                items: [
+                  { to: "/app/assignment-groups", label: "Assignment Groups", icon: Workflow },
+                  { to: "/app/users", label: "Users & Roles", icon: Users },
+                  { to: "/app/audit", label: "Audit Logs", icon: Shield },
+                ],
+              },
+            ]
+          : []),
+        {
+          label: "Personal",
+          items: [
+            { to: "/app/notifications", label: "Notifications", icon: Bell },
+            { to: "/app/settings", label: "Settings", icon: UserCircle },
+          ],
+        },
+      ]
+    : [
+        {
+          label: "Front Office",
+          items: [
+            { to: "/app/my-reported-tickets", label: "My Reported Incidents", icon: ClipboardList },
+            ...(!isViewer ? [{ to: "/app/report-issue", label: "Report an Issue", icon: FilePlus2 }] : []),
+          ],
+        },
+        {
+          label: "Personal",
+          items: [
+            { to: "/app/notifications", label: "Notifications", icon: Bell },
+            { to: "/app/settings", label: "Settings", icon: UserCircle },
+          ],
+        },
+      ]
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -66,13 +94,13 @@ export const AppShell = ({ user }: AppShellProps) => {
   const groupsQuery = useQuery({
     queryKey: ["search", "groups", normalizedSearchText],
     queryFn: () => caseManagerApi.assignmentGroups.search(normalizedSearchText),
-    enabled: normalizedSearchText.length > 0,
+    enabled: showBackofficeSearch && normalizedSearchText.length > 0,
   })
 
   const usersQuery = useQuery({
     queryKey: ["search", "users", normalizedSearchText],
     queryFn: () => caseManagerApi.users.search(normalizedSearchText),
-    enabled: normalizedSearchText.length > 0,
+    enabled: showBackofficeSearch && normalizedSearchText.length > 0,
   })
 
   useEffect(() => {
@@ -143,7 +171,7 @@ export const AppShell = ({ user }: AppShellProps) => {
                 <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="h-11 rounded-2xl bg-background pl-10"
-                  placeholder="Search incidents, groups, and users..."
+                  placeholder={showBackofficeSearch ? "Search incidents, groups, and users..." : "Search incidents..."}
                   value={searchText}
                   onFocus={() => setSearchOpen(true)}
                   onChange={(event) => {
@@ -180,58 +208,71 @@ export const AppShell = ({ user }: AppShellProps) => {
                         ) : null}
                       </div>
 
-                      <div className="border-t border-border/70 pt-2">
-                        <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Assignment Groups</p>
-                        {normalizedSearchText.length === 0 ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">Start typing to search groups.</p>
-                        ) : groupsQuery.isLoading ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">Searching groups...</p>
-                        ) : null}
-                        {preview.groups.length > 0 ? (
-                          preview.groups.map((group) => (
-                            <Link
-                              key={group.id}
-                              to={`/app/assignment-groups/${group.id}`}
-                              className="block rounded-lg px-2 py-2 hover:bg-muted"
-                              onClick={() => setSearchOpen(false)}
-                            >
-                              <p className="text-sm font-medium">{group.name}</p>
-                              <p className="text-xs text-muted-foreground">{group.memberIds.length} members</p>
-                            </Link>
-                          ))
-                        ) : normalizedSearchText.length > 0 ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">No matching groups.</p>
-                        ) : null}
-                      </div>
+                      {showBackofficeSearch && (
+                        <div className="border-t border-border/70 pt-2">
+                          <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Assignment Groups</p>
+                          {normalizedSearchText.length === 0 ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">Start typing to search groups.</p>
+                          ) : groupsQuery.isLoading ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">Searching groups...</p>
+                          ) : null}
+                          {preview.groups.length > 0 ? (
+                            preview.groups.map((group) => (
+                              <Link
+                                key={group.id}
+                                to={`/app/assignment-groups/${group.id}`}
+                                className="block rounded-lg px-2 py-2 hover:bg-muted"
+                                onClick={() => setSearchOpen(false)}
+                              >
+                                <p className="text-sm font-medium">{group.name}</p>
+                                <p className="text-xs text-muted-foreground">{group.memberIds.length} members</p>
+                              </Link>
+                            ))
+                          ) : normalizedSearchText.length > 0 ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">No matching groups.</p>
+                          ) : null}
+                        </div>
+                      )}
 
-                      <div className="border-t border-border/70 pt-2">
-                        <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Users</p>
-                        {normalizedSearchText.length === 0 ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">Start typing to search users.</p>
-                        ) : usersQuery.isLoading ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">Searching users...</p>
-                        ) : null}
-                        {preview.users.length > 0 ? (
-                          preview.users.map((account) => (
-                            <Link
-                              key={account.id}
-                              to={`/app/users/${account.id}`}
-                              className="block rounded-lg px-2 py-2 hover:bg-muted"
-                              onClick={() => setSearchOpen(false)}
-                            >
-                              <p className="text-sm font-medium">{account.userName || "(No username)"}</p>
-                              <p className="text-xs text-muted-foreground">{account.email}</p>
-                            </Link>
-                          ))
-                        ) : normalizedSearchText.length > 0 ? (
-                          <p className="px-2 py-1 text-xs text-muted-foreground">No matching users.</p>
-                        ) : null}
-                      </div>
+                      {showBackofficeSearch && (
+                        <div className="border-t border-border/70 pt-2">
+                          <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Users</p>
+                          {normalizedSearchText.length === 0 ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">Start typing to search users.</p>
+                          ) : usersQuery.isLoading ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">Searching users...</p>
+                          ) : null}
+                          {preview.users.length > 0 ? (
+                            preview.users.map((account) => (
+                              <Link
+                                key={account.id}
+                                to={`/app/users/${account.id}`}
+                                className="block rounded-lg px-2 py-2 hover:bg-muted"
+                                onClick={() => setSearchOpen(false)}
+                              >
+                                <p className="text-sm font-medium">{account.userName || "(No username)"}</p>
+                                <p className="text-xs text-muted-foreground">{account.email}</p>
+                              </Link>
+                            ))
+                          ) : normalizedSearchText.length > 0 ? (
+                            <p className="px-2 py-1 text-xs text-muted-foreground">No matching users.</p>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
               <div className="flex items-center gap-3">
+                {canUseRolePreview && (
+                  <div className="hidden items-center gap-1 md:flex">
+                    <Button variant={previewRole === null ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole(null)}>Real</Button>
+                    <Button variant={previewRole === "ADMIN" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("ADMIN")}>Admin</Button>
+                    <Button variant={previewRole === "AGENT" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("AGENT")}>Agent</Button>
+                    <Button variant={previewRole === "REPORTER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("REPORTER")}>Reporter</Button>
+                    <Button variant={previewRole === "VIEWER" ? "default" : "outline"} size="sm" onClick={() => onSetPreviewRole("VIEWER")}>Viewer</Button>
+                  </div>
+                )}
                 <div className="hidden text-right md:block">
                   <p className="text-sm font-medium">{user.userName}</p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>

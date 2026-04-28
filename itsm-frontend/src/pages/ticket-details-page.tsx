@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/lib/auth-context"
-import { formatEnumLabel } from "@/lib/format"
+import { formatDateTime, formatEnumLabel } from "@/lib/format"
 import type { CommentVisibility, Priority, TicketStatus } from "@/types/api"
 
 export const TicketDetailsPage = () => {
@@ -153,6 +153,8 @@ export const TicketDetailsPage = () => {
 
   const ticket = ticketQuery.data
   const canEdit = user.roles.includes("AGENT") || user.roles.includes("ADMIN")
+  const canComment = !user.roles.includes("VIEWER")
+  const canUploadAttachment = canEdit || user.roles.includes("REPORTER")
 
   useEffect(() => {
     if (!ticket) {
@@ -293,8 +295,16 @@ export const TicketDetailsPage = () => {
                   className="max-w-sm bg-muted text-muted-foreground"
                 />
               </div>
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Opened at</p>
+                <Input value={formatDateTime(ticket.createdAt)} disabled className="max-w-sm bg-muted text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Updated at</p>
+                <Input value={formatDateTime(ticket.updatedAt)} disabled className="max-w-sm bg-muted text-muted-foreground" />
+              </div>
             </div>
-            <div className="space-y-4 rounded-lg border border-border p-4">
+            <div className="space-y-4">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Priority</p>
                 <select
@@ -442,11 +452,12 @@ export const TicketDetailsPage = () => {
                 type="file"
                 onChange={(event) => setAttachmentFile(event.target.files?.[0] ?? null)}
                 className="h-10"
+                disabled={!canUploadAttachment}
               />
               <Button
                 type="button"
                 onClick={() => uploadAttachmentMutation.mutate()}
-                disabled={uploadAttachmentMutation.isPending || !attachmentFile}
+                disabled={!canUploadAttachment || uploadAttachmentMutation.isPending || !attachmentFile}
               >
                 {uploadAttachmentMutation.isPending ? "Uploading..." : "Upload"}
               </Button>
@@ -521,6 +532,7 @@ export const TicketDetailsPage = () => {
                     }`}
                     value={visibility}
                     onChange={(event) => setVisibility(event.target.value as CommentVisibility)}
+                    disabled={!canComment}
                   >
                     <option value="PUBLIC">PUBLIC</option>
                     <option value="INTERNAL">WORK NOTE</option>
@@ -529,16 +541,22 @@ export const TicketDetailsPage = () => {
                     value={comment}
                     onChange={(event) => setComment(event.target.value)}
                     rows={2}
+                    disabled={!canComment}
                     className={
                       (showWipInternalCommentError || showPublicCommentError) && !comment.trim()
                         ? "border-red-500 ring-1 ring-red-500/30"
                         : ""
                     }
                   />
-                  <Button onClick={() => commentMutation.mutate()} disabled={commentMutation.isPending || !comment}>
+                  <Button onClick={() => commentMutation.mutate()} disabled={!canComment || commentMutation.isPending || !comment}>
                     Add
                   </Button>
                 </div>
+                {!canComment && (
+                  <p className="mx-auto w-full max-w-4xl text-xs text-muted-foreground">
+                    Viewer mode is read-only. Commenting is disabled.
+                  </p>
+                )}
                 {showWipInternalCommentError && (
                   <p className="mx-auto w-full max-w-4xl text-xs text-red-400">
                     * For assignment/status changes, set comment visibility to WORK NOTE and enter the internal comment here.

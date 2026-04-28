@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 import { caseManagerApi } from "@/api/case-manager-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PageHeader } from "@/components/page-header"
-import { formatEnumLabel } from "@/lib/format"
+import { formatDateTime, formatEnumLabel } from "@/lib/format"
 
 export const DashboardPage = () => {
   const { data: ticketsPage } = useQuery({
@@ -73,6 +73,9 @@ export const DashboardPage = () => {
                   </Link>
                 </p>
                 <p className="text-muted-foreground">{ticket.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  Opened: {formatDateTime(ticket.createdAt)} · Updated: {formatDateTime(ticket.updatedAt)}
+                </p>
               </div>
               <span className="text-xs text-muted-foreground">{formatEnumLabel(ticket.status)}</span>
             </div>

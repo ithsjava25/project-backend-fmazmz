@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { buttonVariants } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { formatEnumLabel } from "@/lib/format"
+import { formatDateTime, formatEnumLabel } from "@/lib/format"
 import type { Priority, TicketStatus } from "@/types/api"
 
 const priorityOptions: Priority[] = ["P1", "P2", "P3", "P4", "P5"]
@@ -116,6 +116,8 @@ export const TicketsPage = () => {
                   <TableHead>Status</TableHead>
                   <TableHead>Priority</TableHead>
                   <TableHead>Group</TableHead>
+                  <TableHead>Opened at</TableHead>
+                  <TableHead>Updated at</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -130,11 +132,13 @@ export const TicketsPage = () => {
                     <TableCell><Badge variant="outline">{formatEnumLabel(ticket.status)}</Badge></TableCell>
                     <TableCell>{ticket.priority}</TableCell>
                     <TableCell>{ticket.assignmentGroupName ?? "-"}</TableCell>
+                    <TableCell>{formatDateTime(ticket.createdAt)}</TableCell>
+                    <TableCell>{formatDateTime(ticket.updatedAt)}</TableCell>
                   </TableRow>
                 ))}
                 {filteredTickets.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                       No incidents found.
                     </TableCell>
                   </TableRow>

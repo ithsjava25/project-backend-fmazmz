@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/lib/auth-context"
-import { formatEnumLabel } from "@/lib/format"
+import { formatDateTime, formatEnumLabel } from "@/lib/format"
 
 export const AssignedToMePage = () => {
   const { user } = useAuth()
@@ -36,6 +36,8 @@ export const AssignedToMePage = () => {
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Group</TableHead>
+                <TableHead>Opened at</TableHead>
+                <TableHead>Updated at</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -52,11 +54,13 @@ export const AssignedToMePage = () => {
                   </TableCell>
                   <TableCell>{ticket.priority}</TableCell>
                   <TableCell>{ticket.assignmentGroupName ?? "-"}</TableCell>
+                  <TableCell>{formatDateTime(ticket.createdAt)}</TableCell>
+                  <TableCell>{formatDateTime(ticket.updatedAt)}</TableCell>
                 </TableRow>
               ))}
               {tickets.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                     No incidents are currently assigned to you.
                   </TableCell>
                 </TableRow>
