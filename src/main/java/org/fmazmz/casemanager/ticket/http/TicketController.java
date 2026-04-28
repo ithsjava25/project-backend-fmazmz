@@ -5,7 +5,9 @@ import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
+import org.fmazmz.casemanager.ticket.dto.AutoCloseResolvedTicketsResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketRequest;
 import org.fmazmz.casemanager.ticket.application.TicketOrchestrator;
@@ -27,10 +29,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 public class TicketController implements TicketApi {
@@ -88,6 +92,18 @@ public class TicketController implements TicketApi {
             Pageable pageable) {
 
         return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.findByAssignmentGroupId(actor.getId(), assignmentGroupId, pageable)));
+    }
+
+    @GetMapping("search")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> searchTickets(
+            @CurrentUser User actor,
+            @RequestParam("q") String query,
+            @ParameterObject
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(new ApiResponseWrapper<>(ticketQueryFacade.search(actor.getId(), query, pageable)));
     }
 
     @GetMapping("{ticketId}")
@@ -194,5 +210,24 @@ public class TicketController implements TicketApi {
                 attachmentId
         );
         return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @GetMapping("{ticketId}/attachments")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<List<AttachmentSummaryResponse>>> listAttachments(
+            @CurrentUser User actor,
+            @PathVariable UUID ticketId
+    ) {
+        List<AttachmentSummaryResponse> response = ticketQueryFacade.listAttachments(actor.getId(), ticketId);
+        return ResponseEntity.ok(new ApiResponseWrapper<>(response));
+    }
+
+    @PostMapping("maintenance/auto-close-resolved")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<AutoCloseResolvedTicketsResponse>> autoCloseResolvedTickets(
+            @CurrentUser User actor
+    ) {
+        int closedCount = ticketOrchestrator.autoCloseResolvedTickets(actor.getId());
+        return ResponseEntity.ok(new ApiResponseWrapper<>(new AutoCloseResolvedTicketsResponse(closedCount)));
     }
 }

@@ -1,5 +1,7 @@
 package org.fmazmz.casemanager.ticket.application.typehandlers;
 
+import org.fmazmz.casemanager.assignmentgroup.domain.AssignmentGroup;
+import org.fmazmz.casemanager.assignmentgroup.repository.AssignmentGroupRepository;
 import org.fmazmz.casemanager.ticket.domain.Priority;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketType;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -69,12 +72,19 @@ class TypeHandlersTests {
 
     @Nested
     class IncidentHandlerTests {
-        IncidentHandler incidentHandler = new IncidentHandler();
+        @Mock
+        private AssignmentGroupRepository assignmentGroupRepository;
+        private IncidentHandler incidentHandler;
+
+        @BeforeEach
+        void setUp() {
+            incidentHandler = new IncidentHandler(assignmentGroupRepository);
+        }
 
         @Test
         @DisplayName("returns INCIDENT as the correct supported TicketType")
         void returnsCorrectSupportedType() {
-            assert(incidentHandler.supports()).equals(TicketType.INCIDENT);
+            assertEquals(TicketType.INCIDENT, incidentHandler.supports());
         }
 
         @Test
@@ -82,10 +92,24 @@ class TypeHandlersTests {
         void appliesDefaultPriority() {
             Ticket ticket = new Ticket();
             ticket.setPriority(null);
+            when(assignmentGroupRepository.findByName("L1")).thenReturn(Optional.empty());
 
             incidentHandler.applyDefaults(ticket);
 
-            assert(ticket.getPriority()).equals(Priority.P3);
+            assertEquals(Priority.P3, ticket.getPriority());
+        }
+
+        @Test
+        @DisplayName("applies L1 as default assignment group when none provided")
+        void appliesDefaultL1Group() {
+            Ticket ticket = new Ticket();
+            AssignmentGroup l1Group = new AssignmentGroup();
+            l1Group.setName("L1");
+            when(assignmentGroupRepository.findByName("L1")).thenReturn(Optional.of(l1Group));
+
+            incidentHandler.applyDefaults(ticket);
+
+            assertSame(l1Group, ticket.getAssignmentGroup());
         }
     }
 

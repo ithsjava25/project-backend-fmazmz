@@ -11,10 +11,15 @@ import org.fmazmz.casemanager.user.dto.UpdateUserRolesRequest;
 import org.fmazmz.casemanager.user.dto.UserResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class AdminUserController implements AdminUserApi {
@@ -25,6 +30,21 @@ public class AdminUserController implements AdminUserApi {
     public AdminUserController(UserAdminService userAdminService, UserLookupService userLookupService) {
         this.userAdminService = userAdminService;
         this.userLookupService = userLookupService;
+    }
+
+    @GetMapping("users")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<List<UserResponse>>> listUsers(@CurrentUser User admin) {
+        return ResponseEntity.ok(new ApiResponseWrapper<>(userLookupService.listAllUsersWithRoles()));
+    }
+
+    @GetMapping("users/{userId}")
+    @Override
+    public ResponseEntity<ApiResponseWrapper<UserResponse>> getUserById(
+            @CurrentUser User admin,
+            @PathVariable UUID userId
+    ) {
+        return ResponseEntity.ok(new ApiResponseWrapper<>(userLookupService.getUserByIdWithRoles(userId)));
     }
 
     @PostMapping("users")

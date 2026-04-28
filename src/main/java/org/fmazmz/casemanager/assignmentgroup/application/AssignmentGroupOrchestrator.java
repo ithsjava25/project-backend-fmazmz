@@ -14,6 +14,7 @@ import org.fmazmz.casemanager.user.domain.User;
 import org.fmazmz.casemanager.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +39,24 @@ public class AssignmentGroupOrchestrator {
     @Transactional(readOnly = true)
     public List<AssignmentGroupResponse> listGroups() {
         return assignmentGroupRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(AssignmentGroup::getName))
+                .map(AssignmentGroupMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssignmentGroupResponse> searchGroups(String query) {
+        String normalized = query == null ? "" : query.trim();
+        if (normalized.isBlank()) {
+            return List.of();
+        }
+        return assignmentGroupRepository
+                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                        normalized,
+                        normalized,
+                        PageRequest.of(0, 10)
+                )
+                .stream()
                 .sorted(java.util.Comparator.comparing(AssignmentGroup::getName))
                 .map(AssignmentGroupMapper::toDto)
                 .toList();

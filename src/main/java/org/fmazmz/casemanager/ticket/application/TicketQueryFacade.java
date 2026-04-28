@@ -7,6 +7,7 @@ import org.fmazmz.casemanager.ticket.application.workflow.PermissionEvaluator;
 import org.fmazmz.casemanager.ticket.domain.Attachment;
 import org.fmazmz.casemanager.ticket.domain.Ticket;
 import org.fmazmz.casemanager.ticket.domain.TicketAction;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
 import org.fmazmz.casemanager.ticket.mapper.TicketMapper;
@@ -18,11 +19,13 @@ import org.fmazmz.casemanager.common.pagination.PagedResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -121,6 +124,23 @@ public class TicketQueryFacade {
         return TicketMapper.mapPage(page);
     }
 
+    @Transactional(readOnly = true)
+    public PagedResult<TicketResponse> search(UUID actorId, String query, Pageable pageable) {
+        requireActorWithTicketRead(actorId);
+        String normalized = query == null ? "" : query.trim();
+        if (normalized.isBlank()) {
+            return new PagedResult<>(java.util.List.of(), org.fmazmz.casemanager.common.pagination.PageMetadata.from(
+                    Page.empty(PageRequest.of(0, pageable.getPageSize() > 0 ? pageable.getPageSize() : 10))
+            ));
+        }
+        Page<Ticket> page = ticketRepository.findByNumberContainingIgnoreCaseOrTitleContainingIgnoreCase(
+                normalized,
+                normalized,
+                pageable
+        );
+        return TicketMapper.mapPage(page);
+    }
+
     /**
      * Returns a time-limited URL to read the file (S3 pre-signed GET; use from the frontend as {@code href} or
      * {@code window.open}, not embedded as a permanent API secret). Requires {@link TicketAction#READ}.
@@ -150,6 +170,22 @@ public class TicketQueryFacade {
                 attachment.getContentType()
         );
         return new AttachmentViewUrlResponse(result.url(), result.expiresAt());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttachmentSummaryResponse> listAttachments(UUID actorId, UUID ticketId) {
+        requireActorWithTicketRead(actorId);
+
+        return attachmentRepository.findAllByTicketId(ticketId).stream()
+                .map(attachment -> new AttachmentSummaryResponse(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        attachment.getContentType(),
+                        attachment.getFileSize(),
+                        attachment.getUploadedBy().getEmail(),
+                        attachment.getCreatedAt()
+                ))
+                .toList();
     }
 
     private User requireActorWithTicketRead(UUID actorId) {

@@ -22,6 +22,6 @@ app:
 
 logging:
   level:
-    org.fmazmz.casemanager: debug
+    org.fmazmz.casemanager: warn
     org.springframework: info
-    org.hibernate: warn
+    org.hibernate: info

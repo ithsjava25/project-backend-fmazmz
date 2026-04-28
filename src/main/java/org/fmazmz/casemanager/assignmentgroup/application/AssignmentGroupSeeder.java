@@ -22,9 +22,11 @@ public class AssignmentGroupSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        ensureGroup("L1", "Level 1 — first line support");
-        ensureGroup("L2", "Level 2 — advanced troubleshooting");
-        ensureGroup("L3", "Level 3 — engineering / vendor escalation");
+        ensureGroup("L1", "service desk");
+        ensureGroup("Identity", "Access Management");
+        ensureGroup("Application", "Engineering");
+        ensureGroup("Network", "Security Operations Center (SOC)");
+        ensureGroup("Infrastructure", "Cloud Ops");
     }
 
     private void ensureGroup(String name, String description) {

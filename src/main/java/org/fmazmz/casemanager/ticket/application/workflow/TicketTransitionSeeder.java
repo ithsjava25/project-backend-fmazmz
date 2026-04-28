@@ -56,12 +56,23 @@ public class TicketTransitionSeeder implements CommandLineRunner {
         List<TransitionSeed> transitions = new ArrayList<>();
         transitions.add(new TransitionSeed(TicketStatus.OPEN, TicketStatus.ASSIGNED, TicketAction.ASSIGN));
         transitions.add(new TransitionSeed(TicketStatus.OPEN, TicketStatus.WORK_IN_PROGRESS, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.OPEN, TicketStatus.AWAITING_USER_INFO, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.OPEN, TicketStatus.AWAITING_USER_INFO, TicketAction.CHANGE_STATUS));
+
         transitions.add(new TransitionSeed(TicketStatus.ASSIGNED, TicketStatus.WORK_IN_PROGRESS, TicketAction.CHANGE_STATUS));
+
         transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_USER_INFO, TicketAction.CHANGE_STATUS));
-        transitions.add(new TransitionSeed(TicketStatus.AWAITING_USER_INFO, TicketStatus.WORK_IN_PROGRESS, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.ASSIGNED, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.OPEN, TicketAction.CHANGE_STATUS));
         transitions.add(new TransitionSeed(TicketStatus.WORK_IN_PROGRESS, TicketStatus.RESOLVED, TicketAction.RESOLVE));
+
+        transitions.add(new TransitionSeed(TicketStatus.AWAITING_USER_INFO, TicketStatus.WORK_IN_PROGRESS, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.AWAITING_USER_INFO, TicketStatus.ASSIGNED, TicketAction.CHANGE_STATUS));
+        transitions.add(new TransitionSeed(TicketStatus.AWAITING_USER_INFO, TicketStatus.OPEN, TicketAction.CHANGE_STATUS));
+
         transitions.add(new TransitionSeed(TicketStatus.RESOLVED, TicketStatus.CLOSED, TicketAction.CHANGE_STATUS));
-        transitions.add(new TransitionSeed(TicketStatus.RESOLVED, TicketStatus.WORK_IN_PROGRESS, TicketAction.REOPEN));
+        transitions.add(new TransitionSeed(TicketStatus.RESOLVED, TicketStatus.OPEN, TicketAction.REOPEN));
+
         return transitions;
     }
 

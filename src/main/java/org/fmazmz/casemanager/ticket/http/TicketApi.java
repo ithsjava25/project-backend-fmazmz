@@ -11,6 +11,8 @@ import org.fmazmz.casemanager.common.api.openapi.StandardRestApiResponses;
 import org.fmazmz.casemanager.ticket.dto.UpdateTicketPriorityRequest;
 import org.fmazmz.casemanager.ticket.dto.ChangeTicketStatusRequest;
 import org.fmazmz.casemanager.ticket.dto.AttachmentViewUrlResponse;
+import org.fmazmz.casemanager.ticket.dto.AttachmentSummaryResponse;
+import org.fmazmz.casemanager.ticket.dto.AutoCloseResolvedTicketsResponse;
 import org.fmazmz.casemanager.ticket.dto.CreateTicketRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketCommentRequest;
 import org.fmazmz.casemanager.ticket.dto.TicketResponse;
@@ -30,11 +32,13 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
+import java.util.List;
 
 @Tag(name = "Ticket API", description = "Perform CRUD operations on Tickets")
 @RequestMapping(
@@ -84,6 +88,17 @@ public interface TicketApi {
             @PathVariable UUID assignmentGroupId,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable
+    );
+
+    @Operation(summary = "Search tickets by number/title")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @GetMapping("search")
+    ResponseEntity<ApiResponseWrapper<PagedResult<TicketResponse>>> searchTickets(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @RequestParam("q") String query,
+            @ParameterObject
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
             Pageable pageable
     );
 
@@ -195,5 +210,21 @@ public interface TicketApi {
             @Parameter(hidden = true) @CurrentUser User actor,
             @PathVariable UUID ticketId,
             @PathVariable UUID attachmentId
+    );
+
+    @Operation(summary = "List attachments for a ticket")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @NotFoundApiResponse
+    @GetMapping("{ticketId}/attachments")
+    ResponseEntity<ApiResponseWrapper<List<AttachmentSummaryResponse>>> listAttachments(
+            @Parameter(hidden = true) @CurrentUser User actor,
+            @PathVariable UUID ticketId
+    );
+
+    @Operation(summary = "Close resolved tickets older than configured duration (app.ticket.auto-close-after)")
+    @ApiResponse(responseCode = "200", description = "Ok", useReturnTypeSchema = true)
+    @PostMapping("maintenance/auto-close-resolved")
+    ResponseEntity<ApiResponseWrapper<AutoCloseResolvedTicketsResponse>> autoCloseResolvedTickets(
+            @Parameter(hidden = true) @CurrentUser User actor
     );
 }

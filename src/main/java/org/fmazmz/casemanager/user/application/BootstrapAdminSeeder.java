@@ -54,7 +54,7 @@ public class BootstrapAdminSeeder implements CommandLineRunner {
             User user = userRepository.findByEmailIgnoreCase(email)
                     .orElseGet(() -> createBootstrapUser(email));
 
-            if (!userRoleMappingRepository.existsByUser_IdAndRole_Name(user.getId(), RoleName.ADMIN.name())) {
+            if (!userRoleMappingRepository.existsByUserIdAndRoleName(user.getId(), RoleName.ADMIN.name())) {
                 UserRoleMapping mapping = new UserRoleMapping();
 
                 UserRoleId id = new UserRoleId();
