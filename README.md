@@ -2,8 +2,6 @@
 
 Monorepo for the Case Manager backend (Spring Boot) and frontend (Vite + React).
 
-This file is intentionally practical: what is in the repo, how to run it, and what to do when something breaks.
-
 ## Repository layout
 
 - `src/` - Spring Boot backend source code
