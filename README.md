@@ -58,6 +58,20 @@ Minimum variables to fill for backend startup:
 - `AWS_REGION`
 - `AWS_S3_PUBLIC_BASE_URL`
 
+Access is invitation-based. The bootstrap admin list is the one exception used to seed the first admin account(s), so someone can log in and start sending invites.
+
+Configure bootstrap admins in `src/main/resources/application.yml`:
+
+```yaml
+app:
+  security:
+    bootstrap-admin-emails:
+      - first.admin@your-company.com
+      - second.admin@your-company.com
+```
+
+After initial setup, keep this list short and manage regular user access through invitations.
+
 For local development, backend can run with the `dev` profile and local Postgres from Docker compose:
 
 - datasource URL: `jdbc:postgresql://localhost:5432/case_manager_db`
